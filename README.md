@@ -111,9 +111,3 @@ When you play a hand:
 ⚡ Tip:  
 Only the cards forming the hand score points.  
 You can include low-value or unwanted cards in your play to free space in your hand.
-
----
-
-## 📌 Notes
-- You can roll dice digitally here: [Random.org Dice Roller](https://www.random.org/dice/?num=1)  
-- Great as a solo challenge or a light 2-player competition.
