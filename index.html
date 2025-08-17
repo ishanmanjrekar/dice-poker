@@ -1,348 +1,333 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Card Dice Poker</title>
-  <style>
-    :root{
-      --bg:#0b0f14; --panel:#0f172a; --edge:#1e293b; --text:#e5e7eb; --muted:#94a3b8;
-      --accent:#60a5fa; --ok:#34d399; --warn:#f59e0b; --bad:#ef4444;
-      --spade:#38bdf8; --club:#22c55e; --heart:#ef4444; --diamond:#f97316;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;background:linear-gradient(180deg,#0b0f14,#0b0f14 60%,#0f172a);color:var(--text)}
-    .wrap{max-width:1200px;margin:0 auto;padding:16px 16px 32px}
-    header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:12px}
-    header h1{font-size:20px;margin:0;letter-spacing:.3px}
-    header .sub{font-size:12px;color:var(--muted)}
-    .grid{display:grid;grid-template-columns:280px 1fr 360px;gap:16px}
-    .panel{background:var(--panel);border:1px solid var(--edge);border-radius:16px;padding:12px;box-shadow:0 8px 30px rgba(0,0,0,.25)}
-    h2{font-size:14px;margin:0 0 10px 0;color:#cbd5e1;letter-spacing:.2px}
-    h3{font-size:13px;margin:10px 0 6px 0;color:#cbd5e1}
-    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-    .controls button,.controls select,.controls input[type="number"],.controls input[type="text"]{background:#0b1220;border:1px solid var(--edge);color:var(--text);padding:8px 10px;border-radius:10px;cursor:pointer;font-size:13px}
-    .controls button:hover{border-color:#2f3f55}
-    .controls .primary{background:linear-gradient(180deg,#2563eb,#1d4ed8);border-color:#1e40af}
-    .controls .ghost{background:#0b1220}
-    .pill{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid var(--edge);background:#0b1220;font-size:11px;color:#cbd5e1}
-    .piles{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
-    .pile{background:#0b1220;border:1px solid var(--edge);border-radius:14px;padding:8px;min-height:118px;position:relative;overflow:hidden}
-    .pile .label{position:absolute;top:6px;left:8px;font-size:11px;color:var(--muted)}
-    .pile .top{margin-top:18px;display:flex;align-items:center;justify-content:center;gap:6px;min-height:72px}
-    .pile .count{font-size:11px;color:var(--muted);text-align:center;margin-top:6px}
-    .card{display:inline-grid;place-items:center;width:48px;height:68px;border-radius:12px;border:1px solid #334155;background:linear-gradient(160deg,#0c1421,#0b1320);font-weight:700;position:relative;user-select:none}
-    .card .r{font-size:14px}
-    .card .s{font-size:13px}
-    .card.sel{outline:2px solid var(--accent)}
-    .card::after{content:"";position:absolute;inset:0;border-radius:12px;opacity:.3;pointer-events:none}
-    .s-spade{color:#dbeafe}
-    .s-spade .s{color:var(--spade)}
-    .s-spade::after{background:radial-gradient(80px 40px at 50% -10%, rgba(56,189,248,.35), transparent)}
-    .s-club{color:#dcfce7}
-    .s-club .s{color:var(--club)}
-    .s-club::after{background:radial-gradient(80px 40px at 50% -10%, rgba(34,197,94,.35), transparent)}
-    .s-heart{color:#fee2e2}
-    .s-heart .s{color:var(--heart)}
-    .s-heart::after{background:radial-gradient(80px 40px at 50% -10%, rgba(239,68,68,.35), transparent)}
-    .s-diamond{color:#ffedd5}
-    .s-diamond .s{color:var(--diamond)}
-    .s-diamond::after{background:radial-gradient(80px 40px at 50% -10%, rgba(249,115,22,.35), transparent)}
-    .placeholder{opacity:.35;border-style:dashed}
-    .hand{display:flex;flex-wrap:wrap;gap:8px;min-height:76px}
-    .info{font-size:12px;color:var(--muted)}
-    .score{font-size:13px}
-    .log{max-height:260px;overflow:auto;font-size:12px;border-radius:10px;background:#0b1220;padding:8px;border:1px solid var(--edge)}
-    .log p{margin:4px 0}
-    .muted{color:var(--muted)}
-    .good{color:var(--ok)}
-    .warn{color:var(--warn)}
-    .bad{color:var(--bad)}
-    .footer{margin-top:16px;font-size:12px;color:var(--muted)}
-    details{border-top:1px solid var(--edge);margin-top:10px;padding-top:10px}
-    table{width:100%;border-collapse:collapse;font-size:12px}
-    th,td{border-bottom:1px solid var(--edge);padding:6px;text-align:left}
-    code.kbd{padding:1px 6px;border-radius:6px;background:#0b1220;border:1px solid var(--edge)}
-    a{color:#93c5fd}
-    @media(max-width:1024px){.grid{grid-template-columns:1fr}}
-
-    /* Dice */
-    .dice-area{display:flex;align-items:center;gap:10px}
-    .dice-wrap{width:54px;height:54px;perspective:700px}
-    .dice{width:54px;height:54px;position:relative;transform-style:preserve-3d;transition:transform 700ms cubic-bezier(.2,.8,.2,1)}
-    .dice.rolling{animation:roll-spin 650ms ease-in-out}
-    @keyframes roll-spin{0%{transform:rotateX(0) rotateY(0)}50%{transform:rotateX(200deg) rotateY(160deg)}100%{transform:rotateX(360deg) rotateY(360deg)}}
-    .dice .side{position:absolute;width:54px;height:54px;border-radius:10px;background:#e5e7eb;color:#0b1220;border:2px solid #d1d5db;display:grid;place-items:center;font-weight:800;font-size:18px;box-shadow:inset 0 0 0 2px rgba(0,0,0,.05)}
-    .side.front{transform:translateZ(27px)}
-    .side.back{transform:rotateY(180deg) translateZ(27px)}
-    .side.right{transform:rotateY(90deg) translateZ(27px)}
-    .side.left{transform:rotateY(-90deg) translateZ(27px)}
-    .side.top{transform:rotateX(90deg) translateZ(27px)}
-    .side.bottom{transform:rotateX(-90deg) translateZ(27px)}
-
-    /* Flying card animation */
-    .fly{position:fixed;z-index:50;transition:transform 600ms cubic-bezier(.22,1,.36,1), opacity 600ms ease;will-change:transform,opacity}
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <header>
-      <div>
-        <h1>Dice Poker</h1>
-        <div class="sub">Solo version: by @ishanmanjrekar x GPT5</div>
+   <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <title>Dice Poker</title>
+      <style>
+         :root{
+         --bg:#0b0f14; --panel:#0f172a; --edge:#1e293b; --text:#e5e7eb; --muted:#94a3b8;
+         --accent:#60a5fa; --ok:#34d399; --warn:#f59e0b; --bad:#ef4444;
+         --spade:#38bdf8; --club:#22c55e; --heart:#ef4444; --diamond:#f97316;
+         }
+         *{box-sizing:border-box}
+         html,body{height:100%}
+         body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;background:linear-gradient(180deg,#0b0f14,#0b0f14 60%,#0f172a);color:var(--text)}
+         .wrap{max-width:1200px;margin:0 auto;padding:16px 16px 32px}
+         header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:12px}
+         header h1{font-size:20px;margin:0;letter-spacing:.3px}
+         header .sub{font-size:12px;color:var(--muted)}
+         .grid{display:grid;grid-template-columns:280px 1fr 360px;gap:16px}
+         .panel{background:var(--panel);border:1px solid var(--edge);border-radius:16px;padding:12px;box-shadow:0 8px 30px rgba(0,0,0,.25)}
+         h2{font-size:14px;margin:0 0 10px 0;color:#cbd5e1;letter-spacing:.2px}
+         h3{font-size:13px;margin:10px 0 6px 0;color:#cbd5e1}
+         .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+         .controls button,.controls select,.controls input[type="number"],.controls input[type="text"]{background:#0b1220;border:1px solid var(--edge);color:var(--text);padding:8px 10px;border-radius:10px;cursor:pointer;font-size:13px}
+         .controls button:hover{border-color:#2f3f55}
+         .controls .primary{background:linear-gradient(180deg,#2563eb,#1d4ed8);border-color:#1e40af}
+         .controls .ghost{background:#0b1220}
+         .pill{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid var(--edge);background:#0b1220;font-size:11px;color:#cbd5e1}
+         .piles{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+         .pile{background:#0b1220;border:1px solid var(--edge);border-radius:14px;padding:8px;min-height:118px;position:relative;overflow:hidden}
+         .pile .label{position:absolute;top:6px;left:8px;font-size:11px;color:var(--muted)}
+         .pile .top{margin-top:18px;display:flex;align-items:center;justify-content:center;gap:6px;min-height:72px}
+         .pile .count{font-size:11px;color:var(--muted);text-align:center;margin-top:6px}
+         .card{display:inline-grid;place-items:center;width:48px;height:68px;border-radius:12px;border:1px solid #334155;background:linear-gradient(160deg,#0c1421,#0b1320);font-weight:700;position:relative;user-select:none}
+         .card .r{font-size:14px}
+         .card .s{font-size:13px}
+         .card.sel{outline:2px solid var(--accent)}
+         .card::after{content:"";position:absolute;inset:0;border-radius:12px;opacity:.3;pointer-events:none}
+         .s-spade{color:#dbeafe}
+         .s-spade .s{color:var(--spade)}
+         .s-spade::after{background:radial-gradient(80px 40px at 50% -10%, rgba(56,189,248,.35), transparent)}
+         .s-club{color:#dcfce7}
+         .s-club .s{color:var(--club)}
+         .s-club::after{background:radial-gradient(80px 40px at 50% -10%, rgba(34,197,94,.35), transparent)}
+         .s-heart{color:#fee2e2}
+         .s-heart .s{color:var(--heart)}
+         .s-heart::after{background:radial-gradient(80px 40px at 50% -10%, rgba(239,68,68,.35), transparent)}
+         .s-diamond{color:#ffedd5}
+         .s-diamond .s{color:var(--diamond)}
+         .s-diamond::after{background:radial-gradient(80px 40px at 50% -10%, rgba(249,115,22,.35), transparent)}
+         .placeholder{opacity:.35;border-style:dashed}
+         .hand{display:flex;flex-wrap:wrap;gap:8px;min-height:76px}
+         .info{font-size:12px;color:var(--muted)}
+         .score{font-size:13px}
+         .log{max-height:260px;overflow:auto;font-size:12px;border-radius:10px;background:#0b1220;padding:8px;border:1px solid var(--edge)}
+         .log p{margin:4px 0}
+         .muted{color:var(--muted)}
+         .good{color:var(--ok)}
+         .warn{color:var(--warn)}
+         .bad{color:var(--bad)}
+         .footer{margin-top:16px;font-size:12px;color:var(--muted)}
+         details{border-top:1px solid var(--edge);margin-top:10px;padding-top:10px}
+         table{width:100%;border-collapse:collapse;font-size:12px}
+         th,td{border-bottom:1px solid var(--edge);padding:6px;text-align:left}
+         code.kbd{padding:1px 6px;border-radius:6px;background:#0b1220;border:1px solid var(--edge)}
+         a{color:#93c5fd}
+         @media(max-width:1024px){.grid{grid-template-columns:1fr}}
+         /* Dice */
+         .dice-area{display:flex;align-items:center;gap:10px}
+         .dice-wrap{width:54px;height:54px;perspective:700px}
+         .dice{width:54px;height:54px;position:relative;transform-style:preserve-3d;transition:transform 700ms cubic-bezier(.2,.8,.2,1)}
+         .dice.rolling{animation:roll-spin 650ms ease-in-out}
+         @keyframes roll-spin{0%{transform:rotateX(0) rotateY(0)}50%{transform:rotateX(200deg) rotateY(160deg)}100%{transform:rotateX(360deg) rotateY(360deg)}}
+         .dice .side{position:absolute;width:54px;height:54px;border-radius:10px;background:#e5e7eb;color:#0b1220;border:2px solid #d1d5db;display:grid;place-items:center;font-weight:800;font-size:18px;box-shadow:inset 0 0 0 2px rgba(0,0,0,.05)}
+         .side.front{transform:translateZ(27px)}
+         .side.back{transform:rotateY(180deg) translateZ(27px)}
+         .side.right{transform:rotateY(90deg) translateZ(27px)}
+         .side.left{transform:rotateY(-90deg) translateZ(27px)}
+         .side.top{transform:rotateX(90deg) translateZ(27px)}
+         .side.bottom{transform:rotateX(-90deg) translateZ(27px)}
+         /* Flying card animation */
+         .fly{position:fixed;z-index:50;transition:transform 600ms cubic-bezier(.22,1,.36,1), opacity 600ms ease;will-change:transform,opacity}
+      </style>
+   </head>
+   <body>
+      <div class="wrap">
+         <header>
+            <div>
+               <h1>Dice Poker</h1>
+               <div class="sub">Solo version - <a href = "https://gamedesignbites.substack.com"> Game Design Bites</a> x GPT5</div>
+            </div>
+            <div class="controls row">
+               <button class="primary" id="newGame">New Game</button>
+            </div>
+         </header>
+         <div class="grid">
+            <!-- Left: Settings (collapsed by default) -->
+            <section class="panel">
+               <details id="settings">
+                  <summary style="font-size:14px;color:#cbd5e1;cursor:pointer">Settings</summary>
+                  <div style="margin-top:10px">
+                     <div class="info">Edit multipliers before you play a hand.</div>
+                     <div id="multTable" style="margin-top:8px"></div>
+                     <details style="margin-top:8px">
+                        <summary>Advanced</summary>
+                        <div class="row" style="margin-top:8px">
+                           <label class="pill">Seed</label>
+                           <input id="seed" type="text" placeholder="optional" />
+                           <button id="reshuffle">Reshuffle</button>
+                        </div>
+                        <div class="info" style="margin-top:6px">Seeded shuffles help test and share setups.</div>
+                     </details>
+                  </div>
+               </details>
+               <h2 style="margin-top:10px">RULES:</h2>
+               <div class="info">
+                  <ul style="margin:8px 0 0 18px">
+                  <li>There are 6 piles of cards. Each pile: 7 face-down cards + 1 card face‑up on top.</li>
+                  <li>You get 4 cards to start — this is your hand.</li>
+                  <li>Roll the dice to select a card from the piles.</li>
+                  <li>Each round you may roll the die up to 3 times. On a roll, take the top card from the pile matching the die face and add it to your hand. If the pile is empty the roll is wasted.</li>
+                  <li>Your hand limit is 7 cards. If you reach 7, you cannot roll again until you play a hand.</li>
+                  <li>After you finish rolling (or you can’t roll), you must play a hand: select up to 5 cards from your hand and click <em>Play Selected</em>.</li>
+                  <li>Score the played hand using Poker ranks. Only the cards that form the actual poker combination count toward scoring; any extra selected cards are discarded as throwaways.</li>
+                  <li>Play 15 hands total. Your final score is the sum of all hand scores.</li>
+                  </ol>
+               </div>
+            </section>
+            <!-- Middle: Board -->
+            <section class="panel">
+               <h2>Board</h2>
+               <div class="piles" id="piles"></div>
+               <div class="controls row" style="margin-top:10px;justify-content:space-between">
+                  <div class="row dice-area">
+                     <button id="roll" class="primary">🎲 Roll</button>
+                     <div class="dice-wrap">
+                        <div id="dice" class="dice">
+                           <div class="side front">1</div>
+                           <div class="side back">6</div>
+                           <div class="side right">3</div>
+                           <div class="side left">4</div>
+                           <div class="side top">5</div>
+                           <div class="side bottom">2</div>
+                        </div>
+                     </div>
+                     <span class="pill" id="dieFace">Die: –</span>
+                  </div>
+                  <div class="row">
+                     <span class="pill" id="rollsLeft">Rolls left: 3</span>
+                     <span class="pill" id="turnInfo">Solo Round</span>
+                  </div>
+               </div>
+               <h3 style="margin-top:10px">Current Hand</h3>
+               <div class="hand" id="hand"></div>
+               <div class="controls row" style="margin-top:8px">
+                  <button id="play">Play Selected</button>
+                  <span class="pill" id="handCap">Hand: 0/7</span>
+               </div>
+               <div class="score" id="lastScore" style="margin-top:8px"></div>
+            </section>
+            <!-- Right: Score, Log, High Scores -->
+            <section class="panel">
+               <h2>Scoreboard</h2>
+               <div id="scoreboard"></div>
+               <h3>Log</h3>
+               <div class="log" id="log"></div>
+               <h3 style="margin-top:10px">High Scores (Solo)</h3>
+               <div id="highscores">
+                  <div id="soloList" class="info" style="margin:6px 0 10px"></div>
+                  <button id="clearScores" class="ghost">Clear High Scores</button>
+               </div>
+            </section>
+         </div>
       </div>
-      <div class="controls row">
-        <button class="primary" id="newGame">New Game</button>
-      </div>
-    </header>
-
-    <div class="grid">
-      <!-- Left: Settings (collapsed by default) -->
-      <section class="panel">
-        <details id="settings">
-          <summary style="font-size:14px;color:#cbd5e1;cursor:pointer">Settings</summary>
-          <div style="margin-top:10px">
-            <div class="info">Edit multipliers before you play a hand.</div>
-            <div id="multTable" style="margin-top:8px"></div>
-            <details style="margin-top:8px">
-              <summary>Advanced</summary>
-              <div class="row" style="margin-top:8px">
-                <label class="pill">Seed</label>
-                <input id="seed" type="text" placeholder="optional" />
-                <button id="reshuffle">Reshuffle</button>
-              </div>
-              <div class="info" style="margin-top:6px">Seeded shuffles help test and share setups.</div>
-            </details>
-          </div>
-        </details>
-        <h3 style="margin-top:10px">Rules snapshot</h3>
-        <div class="info">
-          <strong>RULES:</strong>
-          <ol style="margin:8px 0 0 18px">
-            <li>There are 6 piles of cards. Each pile: 7 face-down cards + 1 card face‑up on top.</li>
-            <li>You get 4 cards to start — this is your hand.</li>
-            <li>Roll the dice to select a card from the piles.</li>
-            <li>Each round you may roll the die up to 3 times. On a roll, take the top card from the pile matching the die face and add it to your hand. If the pile is empty the roll is wasted.</li>
-            <li>Your hand limit is 7 cards. If you reach 7, you cannot roll again until you play a hand.</li>
-            <li>After you finish rolling (or you can’t roll), you must play a hand: select up to 5 cards from your hand and click <em>Play Selected</em>.</li>
-            <li>Score the played hand using Poker ranks. Only the cards that form the actual poker combination count toward scoring; any extra selected cards are discarded as throwaways.</li>
-            <li>Play 15 hands total. Your final score is the sum of all hand scores.</li>
-          </ol>
-        </div>
-        <details style="margin-top:10px">
-          <summary>View full rules</summary>
-          <div class="info" style="margin-top:8px">
-            <p><strong>Setup:</strong> Use a standard 52‑card deck. Prepare six piles; each pile contains 8 cards — 7 face‑down and 1 face‑up on top. Arrange piles left to right and deal 4 cards to your hand.</p>
-            <p><strong>Rolling:</strong> Each round you may roll up to three times. On each roll, take the top card from the pile matching the die face, then reveal the next face‑down card in that pile (if any). A roll that hits an empty pile counts but yields nothing.</p>
-            <p><strong>Playing a hand:</strong> After rolling (or reaching your hand cap), select up to 5 cards and play them. Score the hand using poker rankings (pair, two pair, flush, full house, etc.). The score equals the sum of the point values of the cards that form the played poker combination, multiplied by a hand multiplier (editable in Settings).</p>
-            <p><strong>Card values:</strong> Number cards score their face value; J/Q/K = 10; A = 11.</p>
-            <p><strong>Game end:</strong> Play exactly 15 hands. Add the scores for each played hand — that total is your final score.</p>
-          </div>
-        </details>
-      </section>
-
-      <!-- Middle: Board -->
-      <section class="panel">
-        <h2>Board</h2>
-        <div class="piles" id="piles"></div>
-        <div class="controls row" style="margin-top:10px;justify-content:space-between">
-          <div class="row dice-area">
-            <button id="roll" class="primary">🎲 Roll</button>
-            <div class="dice-wrap"><div id="dice" class="dice">
-              <div class="side front">1</div>
-              <div class="side back">6</div>
-              <div class="side right">3</div>
-              <div class="side left">4</div>
-              <div class="side top">5</div>
-              <div class="side bottom">2</div>
-            </div></div>
-            <span class="pill" id="dieFace">Die: –</span>
-          </div>
-          <div class="row">
-            <span class="pill" id="rollsLeft">Rolls left: 3</span>
-            <span class="pill" id="turnInfo">Solo Round</span>
-          </div>
-        </div>
-        <h3 style="margin-top:10px">Current Hand</h3>
-        <div class="hand" id="hand"></div>
-        <div class="controls row" style="margin-top:8px">
-          <button id="play">Play Selected</button>
-          <span class="pill" id="handCap">Hand: 0/7</span>
-        </div>
-        <div class="score" id="lastScore" style="margin-top:8px"></div>
-      </section>
-
-      <!-- Right: Score, Log, High Scores -->
-      <section class="panel">
-        <h2>Scoreboard</h2>
-        <div id="scoreboard"></div>
-        <h3>Log</h3>
-        <div class="log" id="log"></div>
-        <h3 style="margin-top:10px">High Scores (Solo)</h3>
-        <div id="highscores">
-          <div id="soloList" class="info" style="margin:6px 0 10px"></div>
-          <button id="clearScores" class="ghost">Clear High Scores</button>
-        </div>
-      </section>
-    </div>
-  </div>
-
-<script>
-// ===== Constants =====
-const SUITS=["♠","♥","♦","♣"]; const RANKS=["2","3","4","5","6","7","8","9","10","J","Q","K","A"]; const RVAL=Object.fromEntries(RANKS.map((r,i)=>[r,i+2]));
-const CARD_POINTS = r => r==="A"?11: ["J","Q","K"].includes(r)?10: parseInt(r);
-const mulDefaults={"High Card":1,"Pair":2,"Two Pair":3,"Three of a Kind":4,"Straight":5,"Flush":6,"Full House":7,"Four of a Kind":8,"Straight Flush":10,"Royal Flush":12};
-
-// Dice orientation (front=1, right=3, left=4, back=6, top=5, bottom=2)
-const ROT_FOR_NUM={
-  1:"rotateX(0deg) rotateY(0deg)",
-  2:"rotateX(90deg) rotateY(0deg)",
-  3:"rotateX(0deg) rotateY(-90deg)",
-  4:"rotateX(0deg) rotateY(90deg)",
-  5:"rotateX(-90deg) rotateY(0deg)",
-  6:"rotateX(0deg) rotateY(180deg)",
-};
-
-// High score storage key (solo only)
-const HS_SOLO='cdp:scores:solo';
-
-// ===== Helpers =====
-function rng(seed){let x=seed||(Math.random()*1e9>>>0);return()=>{x^=x<<13;x^=x>>>17;x^=x<<5;return((x>>>0)%1_000_000)/1_000_000;};}
-function shuffle(a,seed){const r=seed?rng(seed):Math.random;for(let i=a.length-1;i>0;i--){const j=Math.floor((seed?r():r())*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
-function newDeck(){let id=0;return SUITS.flatMap(s=>RANKS.map(r=>({id:id++,rank:r,suit:s})));}
-
-// ===== State & Setup =====
-let state;
-function dealPiles(deck){const piles=Array.from({length:6},()=>({cards:[],faceDown:0,top:null}));for(let p=0;p<6;p++){const stack=deck.splice(0,8);piles[p].cards=stack;piles[p].faceDown=7;piles[p].top=stack[7]||null;}return piles;}
-function setupGame(){const mode='solo';const seedStr=document.getElementById('seed')?.value?.trim()||"";const seed=seedStr?[...seedStr].reduce((a,c)=>a+c.charCodeAt(0),0):null;const deck=shuffle(newDeck(),seed);const piles=dealPiles(deck);const players=[{name:'Solo',hand:deck.splice(0,4),score:0,handsPlayed:0}] ;return{mode,piles,players,turn:0,rollsLeft:3,die:null,selected:new Set(),log:[],multipliers:{...mulDefaults},finished:false,isAnimating:false};}
-
-// ===== Rendering =====
-function el(html){const d=document.createElement('div');d.innerHTML=html.trim();return d.firstChild;}
-function render(){renderSettings();renderPiles();renderHand();renderHUD();renderScore();renderLog();renderHighScores();}
-function renderSettings(){const box=document.getElementById('multTable');box.innerHTML='';const tbl=document.createElement('table');tbl.appendChild(el('<tr><th>Hand</th><th>Multiplier</th></tr>'));for(const [k,v] of Object.entries(state.multipliers)){const tr=document.createElement('tr');tr.innerHTML=`<td>${k}</td><td><input type="number" min="1" step="1" value="${v}" data-key="${k}" style="width:80px;background:#0b1220;border:1px solid #1e293b;color:var(--text);padding:6px;border-radius:8px"></td>`;tbl.appendChild(tr);}box.appendChild(tbl);box.querySelectorAll('input').forEach(inp=>inp.addEventListener('input',e=>{const k=e.target.dataset.key;state.multipliers[k]=parseInt(e.target.value||'1');}));}
-function suitCls(s){return s==='♠'?'s-spade':s==='♣'?'s-club':s==='♥'?'s-heart':'s-diamond';}
-function cardHtml(c,selectable=true){const sel=state.selected.has(c.id)?' sel':'';return `<div class="card ${suitCls(c.suit)}${sel}" data-id="${c.id}" ${selectable?'':'style="opacity:.8"'}><div class="r">${c.rank}</div><div class="s">${c.suit}</div></div>`}
-function renderPiles(){const root=document.getElementById('piles');root.innerHTML='';state.piles.forEach((p,idx)=>{const top=p.top?cardHtml(p.top,false):`<div class="card placeholder"></div>`;const pile=el(`<div class="pile" data-idx="${idx}"><div class="label">Pile ${idx+1}</div><div class="top">${top}</div><div class="count">Face‑down: ${p.faceDown} · Total left: ${p.cards.length}</div></div>`);root.appendChild(pile);});}
-function renderHand(){const root=document.getElementById('hand');root.innerHTML='';const me=state.players[state.turn];me.hand.forEach(c=>root.appendChild(el(cardHtml(c))));root.querySelectorAll('.card').forEach(div=>div.addEventListener('click',()=>{const id=parseInt(div.dataset.id);if(state.selected.has(id))state.selected.delete(id);else state.selected.add(id);renderHand();renderHUD();}));}
-function renderHUD(){
-  try{document.getElementById('rollsLeft').textContent=`Rolls left: ${state.rollsLeft}`;}catch(e){}
-  try{document.getElementById('dieFace').textContent=`Die: ${state.die??'–'}`}catch(e){}
-  const me = state.players[state.turn];
-  const cap = 7;
-  try{document.getElementById('handCap').textContent=`Hand: ${me.hand.length}/${cap}`}catch(e){}
-  try{document.getElementById('turnInfo').textContent='Solo Round'}catch(e){}
-
-  const rollBtn = document.getElementById('roll');
-  if(rollBtn){
-    rollBtn.disabled = state.finished || state.rollsLeft<=0 || me.hand.length>=cap || state.isAnimating;
-    if(rollBtn.disabled){
-      // visually grey out when disabled
-      rollBtn.style.opacity = '0.5';
-      rollBtn.style.background = '#263238';
-      rollBtn.style.borderColor = '#374151';
-      rollBtn.style.color = '#9ca3af';
-      // add a single log entry when rolls are depleted
-      if(state.rollsLeft<=0){
-        const last = state.log[state.log.length-1];
-        if(!last || last.t !== 'No rolls remaining. Play a hand first'){
-          // exact message requested
-          log('No rolls remaining. Play a hand first','warn');
-        }
-      }
-    } else {
-      // restore styles when enabled
-      rollBtn.style.opacity = '';
-      rollBtn.style.background = '';
-      rollBtn.style.borderColor = '';
-      rollBtn.style.color = '';
-    }
-  }
-
-  const playBtn=document.getElementById('play'); if(playBtn) playBtn.disabled=state.finished||state.selected.size===0||state.isAnimating;
-}
-function renderScore(){const root=document.getElementById('scoreboard');const p=state.players[0];root.innerHTML=`<p><span class="pill">${p.name}</span> — <strong>${p.score}</strong> pts · Hands: ${p.handsPlayed}</p>`+(state.finished?`<p class="good"><strong>Game Over.</strong> ${winnerText()}</p>`:'');}
-function renderLog(){
-  const root = document.getElementById('log');
-  // show newest entries at the top
-  const entries = state.log.slice(-120).reverse();
-  root.innerHTML = entries.map(x=>`<p class="${x.kind||''}">${x.t}</p>`).join('');
-}
-function renderHighScores(){const solo=loadScores(HS_SOLO);const fmt=list=>list.length?'<ol>'+list.map((e,i)=>`<li>#${i+1} — <strong>${e.score}</strong> pts <span class="muted">${e.label?('· '+e.label):''}</span></li>`).join('')+'</ol>':'<div class="muted">No scores yet.</div>';const elSolo=document.getElementById('soloList'); if(elSolo) elSolo.innerHTML=fmt(solo);} 
-function log(t,kind=""){state.log.push({t,kind});renderLog();}
-
-// ===== Dice visual =====
-function setDieVisual(n){const d=document.getElementById('dice');if(!d) return; d.classList.remove('rolling');void d.offsetWidth;d.classList.add('rolling');setTimeout(()=>{d.style.transform=ROT_FOR_NUM[n];},50);} // quick spin then settle
-
-// ===== Draw & animation =====
-function getElementRect(el){const r=el.getBoundingClientRect();return {x:r.left,y:r.top,w:r.width,h:r.height};}
-function flyCardFromTo(card, fromEl, toEl){return new Promise(resolve=>{const fr=getElementRect(fromEl);const tr=getElementRect(toEl);const ghost=document.createElement('div');ghost.className='card '+suitCls(card.suit)+' fly';ghost.innerHTML=`<div class="r">${card.rank}</div><div class="s">${card.suit}</div>`;ghost.style.left=fr.x+'px';ghost.style.top=fr.y+'px';ghost.style.width=fr.w+'px';ghost.style.height=fr.h+'px';document.body.appendChild(ghost);const dx=(tr.x+tr.w/2)-(fr.x+fr.w/2);const dy=(tr.y+tr.h/2)-(fr.y+fr.h/2);requestAnimationFrame(()=>{ghost.style.transform=`translate(${dx}px, ${dy}px)`;ghost.style.opacity='0.9';});setTimeout(()=>{ghost.remove();resolve();},620);});}
-
-async function drawFromPileAnimated(idx){const p=state.piles[idx];if(!p||p.cards.length===0){log(`Rolled ${idx+1} → pile empty.`,`warn`);return false;}const me=state.players[state.turn];const cap=7;if(me.hand.length>=cap){log(`Hand is at cap; cannot draw.`,`bad`);return false;}
-  const card=p.cards[p.cards.length-1]; // peek top
-  const pileEl=document.querySelector(`.pile[data-idx="${idx}"] .top .card`);
-  if(!pileEl){ // fallback: no visual, just delay
-    await new Promise(r=>setTimeout(r,1000));
-  } else {
-    // 1s delay after roll, then animate
-    await new Promise(r=>setTimeout(r,1000));
-    pileEl.style.visibility='hidden';
-    await flyCardFromTo(card, pileEl, document.getElementById('hand'));
-  }
-  // commit draw
-  p.cards.pop();
-  if(p.faceDown>0){p.faceDown--;}
-  p.top=p.cards[p.cards.length-1]||null;
-  me.hand.push(card);
-  log(`Drew ${card.rank}${card.suit} from Pile ${idx+1}.`);
-  renderPiles();
-  renderHand();
-  renderHUD();
-  return true;
-}
-
-// ===== Game flow =====
-async function rollDie(){const me=state.players[state.turn];const cap=7;if(state.rollsLeft<=0||me.hand.length>=cap||state.finished||state.isAnimating) return;state.isAnimating=true;renderHUD();const face=1+Math.floor(Math.random()*6);state.die=face;state.rollsLeft--;setDieVisual(face);try{document.getElementById('dieFace').textContent=`Die: ${face}`}catch(e){};await drawFromPileAnimated(face-1);state.isAnimating=false;renderHUD();}
-function nextTurn(){state.selected.clear();state.rollsLeft=3;state.die=null;renderHUD();render();}
-function idsToCards(ids,hand){const m=new Map(hand.map(c=>[c.id,c]));return[...ids].map(id=>m.get(id)).filter(Boolean);}
-
-// ===== Hand evaluation =====
-function evaluateBestFromSelected(cards){if(cards.length===0)return null;const byRank=new Map(), bySuit=new Map();for(const c of cards){byRank.set(c.rank,(byRank.get(c.rank)||0)+1);bySuit.set(c.suit,(bySuit.get(c.suit)||[]).concat(c));}
-  function sum(cs){return cs.reduce((a,c)=>a+CARD_POINTS(c.rank),0);}  
-  function findStraightNums(nums){if(nums.length<5)return null;const a=[...new Set(nums)].sort((x,y)=>x-y);const hasA=a.includes(14);const b=hasA?[1,...a]:a;for(let i=b.length-1;i>=4;i--){const win=b.slice(i-4,i+1);if(win[4]-win[0]===4&&new Set(win).size===5)return win;}return null;}
-  function straightFrom(cs){const nums=[...new Set(cs.map(c=>RVAL[c.rank]))].sort((a,b)=>a-b);const seq=findStraightNums(nums);if(!seq)return null;const chosen=[];for(const n of seq){const r=n===1?'A':RANKS[n-2];const pick=cs.find(x=>x.rank===r&&!chosen.includes(x));chosen.push(pick);}return chosen;}
-  // Straight Flush / Royal Flush
-  function straightFlush(){for(const [s,cs] of bySuit){if(cs.length>=5){const ch=straightFrom(cs);if(ch){const isRoyal=ch.some(c=>c.rank==='A') && ch.some(c=>c.rank==='10');return {name:isRoyal?'Royal Flush':'Straight Flush',cards:ch,base:sum(ch)};}}}return null;}
-  // Multiples
-  function byRankGroups(){const arr=[...byRank.entries()].sort((a,b)=>b[1]-a[1]||RVAL[b[0]]-RVAL[a[0]]);const g={four:[],three:[],pair:[],single:[]};for(const [r,c] of arr){if(c===4)g.four.push(r);else if(c===3)g.three.push(r);else if(c===2)g.pair.push(r);else g.single.push(r);}return g;}
-  function fourKind(){const g=byRankGroups();if(g.four.length){const r=g.four[0];const ch=cards.filter(c=>c.rank===r).slice(0,4);return {name:'Four of a Kind',cards:ch,base:sum(ch)};}return null;}
-  function fullHouse(){const g=byRankGroups();if(g.three.length&&(g.pair.length||g.three.length>=2)){const r3=g.three[0];const r2=g.pair[0]||g.three[1];const ch=cards.filter(c=>c.rank===r3).slice(0,3).concat(cards.filter(c=>c.rank===r2).slice(0,2));return {name:'Full House',cards:ch,base:sum(ch)};}return null;}
-  function flush(){for(const [s,cs] of bySuit){if(cs.length>=5){const ch=cs.slice().sort((a,b)=>RVAL[b.rank]-RVAL[a.rank]).slice(0,5);return {name:'Flush',cards:ch,base:sum(ch)};}}return null;}
-  function straight(){const ch=straightFrom(cards);return ch?{name:'Straight',cards:ch,base:sum(ch)}:null;}
-  function three(){const g=byRankGroups();if(g.three.length){const r=g.three[0];const ch=cards.filter(c=>c.rank===r).slice(0,3);return {name:'Three of a Kind',cards:ch,base:sum(ch)};}return null;}
-  function twoPair(){const g=byRankGroups();if(g.pair.length>=2){const [r1,r2]=g.pair;const ch=cards.filter(c=>c.rank===r1).slice(0,2).concat(cards.filter(c=>c.rank===r2).slice(0,2));return {name:'Two Pair',cards:ch,base:sum(ch)};}return null;}
-  function pair(){const g=byRankGroups();if(g.pair.length){const r=g.pair[0];const ch=cards.filter(c=>c.rank===r).slice(0,2);return {name:'Pair',cards:ch,base:sum(ch)};}return null;}
-  function high(){const c=cards.slice().sort((a,b)=>RVAL[b.rank]-RVAL[a.rank])[0];return {name:'High Card',cards:[c],base:sum([c])};}
-  return straightFlush()||fourKind()||fullHouse()||flush()||straight()||three()||twoPair()||pair()||high();
-}
-
-function playSelected(){const me=state.players[state.turn];const sel=idsToCards(state.selected,me.hand);if(sel.length===0)return; if(sel.length>5){log('Select at most 5 cards to play.','bad');return;}const best=evaluateBestFromSelected(sel);const mult=state.multipliers[best.name]||1;const contributing=new Set(best.cards.map(c=>c.id));const base=best.base;const score=base*mult;me.hand=me.hand.filter(c=>!state.selected.has(c.id));me.score+=score;me.handsPlayed++;const throwaways=sel.filter(c=>!contributing.has(c.id));log(`${me.name} played ${best.name} for ${base} × ${mult} = ${score}. Discarded ${throwaways.length} extra.`,'good');try{document.getElementById('lastScore').textContent=`${best.name}: ${base} × ${mult} = ${score}`}catch(e){};state.selected.clear();checkEndThenAdvance();}
-
-// ===== End conditions & High Scores =====
-function winnerText(){return `Total: ${state.players[0].score} pts.`}
-function checkEndThenAdvance(){if(state.players[0].handsPlayed>=15){state.finished=true;saveScoresOnFinish();render();return;}nextTurn();}
-
-function loadScores(key){try{return JSON.parse(localStorage.getItem(key))||[]}catch(e){return[]}}
-function persistScores(key,arr){localStorage.setItem(key,JSON.stringify(arr));}
-function pushScore(key,entry){const list=loadScores(key);list.push(entry);list.sort((a,b)=>b.score-a.score);persistScores(key,list.slice(0,10));}
-function saveScoresOnFinish(){pushScore(HS_SOLO,{score:state.players[0].score,label:new Date().toLocaleDateString()});renderHighScores();}
-
-// ===== Wiring =====
-function bind(){const rollBtn=document.getElementById('roll'); if(rollBtn) rollBtn.onclick=rollDie; const playBtn=document.getElementById('play'); if(playBtn) playBtn.onclick=playSelected; const newG=document.getElementById('newGame'); if(newG) newG.onclick=()=>{state=setupGame();render();}; const reshuffle=document.getElementById('reshuffle'); if(reshuffle) reshuffle.onclick=()=>{state=setupGame();render();}; const clearBtn=document.getElementById('clearScores'); if(clearBtn) clearBtn.onclick=()=>{if(confirm('Clear all Solo high scores?')){persistScores(HS_SOLO,[]);renderHighScores();}} }
-
-bind(); state=setupGame(); render();
-// Initialize dice pose
-setTimeout(()=>{const d=document.getElementById('dice'); if(d) d.style.transform=ROT_FOR_NUM[1];},0);
-</script>
-</body>
+      <script>
+         // ===== Constants =====
+         const SUITS=["♠","♥","♦","♣"]; const RANKS=["2","3","4","5","6","7","8","9","10","J","Q","K","A"]; const RVAL=Object.fromEntries(RANKS.map((r,i)=>[r,i+2]));
+         const CARD_POINTS = r => r==="A"?11: ["J","Q","K"].includes(r)?10: parseInt(r);
+         const mulDefaults={"High Card":1,"Pair":2,"Two Pair":3,"Three of a Kind":4,"Straight":5,"Flush":6,"Full House":7,"Four of a Kind":8,"Straight Flush":10,"Royal Flush":12};
+         
+         // Dice orientation (front=1, right=3, left=4, back=6, top=5, bottom=2)
+         const ROT_FOR_NUM={
+           1:"rotateX(0deg) rotateY(0deg)",
+           2:"rotateX(90deg) rotateY(0deg)",
+           3:"rotateX(0deg) rotateY(-90deg)",
+           4:"rotateX(0deg) rotateY(90deg)",
+           5:"rotateX(-90deg) rotateY(0deg)",
+           6:"rotateX(0deg) rotateY(180deg)",
+         };
+         
+         // High score storage key (solo only)
+         const HS_SOLO='cdp:scores:solo';
+         
+         // ===== Helpers =====
+         function rng(seed){let x=seed||(Math.random()*1e9>>>0);return()=>{x^=x<<13;x^=x>>>17;x^=x<<5;return((x>>>0)%1_000_000)/1_000_000;};}
+         function shuffle(a,seed){const r=seed?rng(seed):Math.random;for(let i=a.length-1;i>0;i--){const j=Math.floor((seed?r():r())*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+         function newDeck(){let id=0;return SUITS.flatMap(s=>RANKS.map(r=>({id:id++,rank:r,suit:s})));}
+         
+         // ===== State & Setup =====
+         let state;
+         function dealPiles(deck){const piles=Array.from({length:6},()=>({cards:[],faceDown:0,top:null}));for(let p=0;p<6;p++){const stack=deck.splice(0,8);piles[p].cards=stack;piles[p].faceDown=7;piles[p].top=stack[7]||null;}return piles;}
+         function setupGame(){const mode='solo';const seedStr=document.getElementById('seed')?.value?.trim()||"";const seed=seedStr?[...seedStr].reduce((a,c)=>a+c.charCodeAt(0),0):null;const deck=shuffle(newDeck(),seed);const piles=dealPiles(deck);const players=[{name:'Solo',hand:deck.splice(0,4),score:0,handsPlayed:0}] ;return{mode,piles,players,turn:0,rollsLeft:3,die:null,selected:new Set(),log:[],multipliers:{...mulDefaults},finished:false,isAnimating:false};}
+         
+         // ===== Rendering =====
+         function el(html){const d=document.createElement('div');d.innerHTML=html.trim();return d.firstChild;}
+         function render(){renderSettings();renderPiles();renderHand();renderHUD();renderScore();renderLog();renderHighScores();}
+         function renderSettings(){const box=document.getElementById('multTable');box.innerHTML='';const tbl=document.createElement('table');tbl.appendChild(el('<tr><th>Hand</th><th>Multiplier</th></tr>'));for(const [k,v] of Object.entries(state.multipliers)){const tr=document.createElement('tr');tr.innerHTML=`<td>${k}</td><td><input type="number" min="1" step="1" value="${v}" data-key="${k}" style="width:80px;background:#0b1220;border:1px solid #1e293b;color:var(--text);padding:6px;border-radius:8px"></td>`;tbl.appendChild(tr);}box.appendChild(tbl);box.querySelectorAll('input').forEach(inp=>inp.addEventListener('input',e=>{const k=e.target.dataset.key;state.multipliers[k]=parseInt(e.target.value||'1');}));}
+         function suitCls(s){return s==='♠'?'s-spade':s==='♣'?'s-club':s==='♥'?'s-heart':'s-diamond';}
+         function cardHtml(c,selectable=true){const sel=state.selected.has(c.id)?' sel':'';return `<div class="card ${suitCls(c.suit)}${sel}" data-id="${c.id}" ${selectable?'':'style="opacity:.8"'}><div class="r">${c.rank}</div><div class="s">${c.suit}</div></div>`}
+         function renderPiles(){const root=document.getElementById('piles');root.innerHTML='';state.piles.forEach((p,idx)=>{const top=p.top?cardHtml(p.top,false):`<div class="card placeholder"></div>`;const pile=el(`<div class="pile" data-idx="${idx}"><div class="label">Pile ${idx+1}</div><div class="top">${top}</div><div class="count">Face‑down: ${p.faceDown} · Total left: ${p.cards.length}</div></div>`);root.appendChild(pile);});}
+         function renderHand(){const root=document.getElementById('hand');root.innerHTML='';const me=state.players[state.turn];me.hand.forEach(c=>root.appendChild(el(cardHtml(c))));root.querySelectorAll('.card').forEach(div=>div.addEventListener('click',()=>{const id=parseInt(div.dataset.id);if(state.selected.has(id))state.selected.delete(id);else state.selected.add(id);renderHand();renderHUD();}));}
+         function renderHUD(){
+           try{document.getElementById('rollsLeft').textContent=`Rolls left: ${state.rollsLeft}`;}catch(e){}
+           try{document.getElementById('dieFace').textContent=`Die: ${state.die??'–'}`}catch(e){}
+           const me = state.players[state.turn];
+           const cap = 7;
+           try{document.getElementById('handCap').textContent=`Hand: ${me.hand.length}/${cap}`}catch(e){}
+           try{document.getElementById('turnInfo').textContent='Solo Round'}catch(e){}
+         
+           const rollBtn = document.getElementById('roll');
+           if(rollBtn){
+             rollBtn.disabled = state.finished || state.rollsLeft<=0 || me.hand.length>=cap || state.isAnimating;
+             if(rollBtn.disabled){
+               // visually grey out when disabled
+               rollBtn.style.opacity = '0.5';
+               rollBtn.style.background = '#263238';
+               rollBtn.style.borderColor = '#374151';
+               rollBtn.style.color = '#9ca3af';
+               // add a single log entry when rolls are depleted
+               if(state.rollsLeft<=0){
+                 const last = state.log[state.log.length-1];
+                 if(!last || last.t !== 'No rolls remaining. Play a hand first'){
+                   // exact message requested
+                   log('No rolls remaining. Play a hand first','warn');
+                 }
+               }
+             } else {
+               // restore styles when enabled
+               rollBtn.style.opacity = '';
+               rollBtn.style.background = '';
+               rollBtn.style.borderColor = '';
+               rollBtn.style.color = '';
+             }
+           }
+         
+           const playBtn=document.getElementById('play'); if(playBtn) playBtn.disabled=state.finished||state.selected.size===0||state.isAnimating;
+         }
+         function renderScore(){const root=document.getElementById('scoreboard');const p=state.players[0];root.innerHTML=`<p><span class="pill">${p.name}</span> — <strong>${p.score}</strong> pts · Hands: ${p.handsPlayed}</p>`+(state.finished?`<p class="good"><strong>Game Over.</strong> ${winnerText()}</p>`:'');}
+         function renderLog(){
+           const root = document.getElementById('log');
+           // show newest entries at the top
+           const entries = state.log.slice(-120).reverse();
+           root.innerHTML = entries.map(x=>`<p class="${x.kind||''}">${x.t}</p>`).join('');
+         }
+         function renderHighScores(){const solo=loadScores(HS_SOLO);const fmt=list=>list.length?'<ol>'+list.map((e,i)=>`<li>#${i+1} — <strong>${e.score}</strong> pts <span class="muted">${e.label?('· '+e.label):''}</span></li>`).join('')+'</ol>':'<div class="muted">No scores yet.</div>';const elSolo=document.getElementById('soloList'); if(elSolo) elSolo.innerHTML=fmt(solo);} 
+         function log(t,kind=""){state.log.push({t,kind});renderLog();}
+         
+         // ===== Dice visual =====
+         function setDieVisual(n){const d=document.getElementById('dice');if(!d) return; d.classList.remove('rolling');void d.offsetWidth;d.classList.add('rolling');setTimeout(()=>{d.style.transform=ROT_FOR_NUM[n];},50);} // quick spin then settle
+         
+         // ===== Draw & animation =====
+         function getElementRect(el){const r=el.getBoundingClientRect();return {x:r.left,y:r.top,w:r.width,h:r.height};}
+         function flyCardFromTo(card, fromEl, toEl){return new Promise(resolve=>{const fr=getElementRect(fromEl);const tr=getElementRect(toEl);const ghost=document.createElement('div');ghost.className='card '+suitCls(card.suit)+' fly';ghost.innerHTML=`<div class="r">${card.rank}</div><div class="s">${card.suit}</div>`;ghost.style.left=fr.x+'px';ghost.style.top=fr.y+'px';ghost.style.width=fr.w+'px';ghost.style.height=fr.h+'px';document.body.appendChild(ghost);const dx=(tr.x+tr.w/2)-(fr.x+fr.w/2);const dy=(tr.y+tr.h/2)-(fr.y+fr.h/2);requestAnimationFrame(()=>{ghost.style.transform=`translate(${dx}px, ${dy}px)`;ghost.style.opacity='0.9';});setTimeout(()=>{ghost.remove();resolve();},620);});}
+         
+         async function drawFromPileAnimated(idx){const p=state.piles[idx];if(!p||p.cards.length===0){log(`Rolled ${idx+1} → pile empty.`,`warn`);return false;}const me=state.players[state.turn];const cap=7;if(me.hand.length>=cap){log(`Hand is at cap; cannot draw.`,`bad`);return false;}
+           const card=p.cards[p.cards.length-1]; // peek top
+           const pileEl=document.querySelector(`.pile[data-idx="${idx}"] .top .card`);
+           if(!pileEl){ // fallback: no visual, just delay
+             await new Promise(r=>setTimeout(r,1000));
+           } else {
+             // 1s delay after roll, then animate
+             await new Promise(r=>setTimeout(r,1000));
+             pileEl.style.visibility='hidden';
+             await flyCardFromTo(card, pileEl, document.getElementById('hand'));
+           }
+           // commit draw
+           p.cards.pop();
+           if(p.faceDown>0){p.faceDown--;}
+           p.top=p.cards[p.cards.length-1]||null;
+           me.hand.push(card);
+           log(`Drew ${card.rank}${card.suit} from Pile ${idx+1}.`);
+           renderPiles();
+           renderHand();
+           renderHUD();
+           return true;
+         }
+         
+         // ===== Game flow =====
+         async function rollDie(){const me=state.players[state.turn];const cap=7;if(state.rollsLeft<=0||me.hand.length>=cap||state.finished||state.isAnimating) return;state.isAnimating=true;renderHUD();const face=1+Math.floor(Math.random()*6);state.die=face;state.rollsLeft--;setDieVisual(face);try{document.getElementById('dieFace').textContent=`Die: ${face}`}catch(e){};await drawFromPileAnimated(face-1);state.isAnimating=false;renderHUD();}
+         function nextTurn(){state.selected.clear();state.rollsLeft=3;state.die=null;renderHUD();render();}
+         function idsToCards(ids,hand){const m=new Map(hand.map(c=>[c.id,c]));return[...ids].map(id=>m.get(id)).filter(Boolean);}
+         
+         // ===== Hand evaluation =====
+         function evaluateBestFromSelected(cards){if(cards.length===0)return null;const byRank=new Map(), bySuit=new Map();for(const c of cards){byRank.set(c.rank,(byRank.get(c.rank)||0)+1);bySuit.set(c.suit,(bySuit.get(c.suit)||[]).concat(c));}
+           function sum(cs){return cs.reduce((a,c)=>a+CARD_POINTS(c.rank),0);}  
+           function findStraightNums(nums){if(nums.length<5)return null;const a=[...new Set(nums)].sort((x,y)=>x-y);const hasA=a.includes(14);const b=hasA?[1,...a]:a;for(let i=b.length-1;i>=4;i--){const win=b.slice(i-4,i+1);if(win[4]-win[0]===4&&new Set(win).size===5)return win;}return null;}
+           function straightFrom(cs){const nums=[...new Set(cs.map(c=>RVAL[c.rank]))].sort((a,b)=>a-b);const seq=findStraightNums(nums);if(!seq)return null;const chosen=[];for(const n of seq){const r=n===1?'A':RANKS[n-2];const pick=cs.find(x=>x.rank===r&&!chosen.includes(x));chosen.push(pick);}return chosen;}
+           // Straight Flush / Royal Flush
+           function straightFlush(){for(const [s,cs] of bySuit){if(cs.length>=5){const ch=straightFrom(cs);if(ch){const isRoyal=ch.some(c=>c.rank==='A') && ch.some(c=>c.rank==='10');return {name:isRoyal?'Royal Flush':'Straight Flush',cards:ch,base:sum(ch)};}}}return null;}
+           // Multiples
+           function byRankGroups(){const arr=[...byRank.entries()].sort((a,b)=>b[1]-a[1]||RVAL[b[0]]-RVAL[a[0]]);const g={four:[],three:[],pair:[],single:[]};for(const [r,c] of arr){if(c===4)g.four.push(r);else if(c===3)g.three.push(r);else if(c===2)g.pair.push(r);else g.single.push(r);}return g;}
+           function fourKind(){const g=byRankGroups();if(g.four.length){const r=g.four[0];const ch=cards.filter(c=>c.rank===r).slice(0,4);return {name:'Four of a Kind',cards:ch,base:sum(ch)};}return null;}
+           function fullHouse(){const g=byRankGroups();if(g.three.length&&(g.pair.length||g.three.length>=2)){const r3=g.three[0];const r2=g.pair[0]||g.three[1];const ch=cards.filter(c=>c.rank===r3).slice(0,3).concat(cards.filter(c=>c.rank===r2).slice(0,2));return {name:'Full House',cards:ch,base:sum(ch)};}return null;}
+           function flush(){for(const [s,cs] of bySuit){if(cs.length>=5){const ch=cs.slice().sort((a,b)=>RVAL[b.rank]-RVAL[a.rank]).slice(0,5);return {name:'Flush',cards:ch,base:sum(ch)};}}return null;}
+           function straight(){const ch=straightFrom(cards);return ch?{name:'Straight',cards:ch,base:sum(ch)}:null;}
+           function three(){const g=byRankGroups();if(g.three.length){const r=g.three[0];const ch=cards.filter(c=>c.rank===r).slice(0,3);return {name:'Three of a Kind',cards:ch,base:sum(ch)};}return null;}
+           function twoPair(){const g=byRankGroups();if(g.pair.length>=2){const [r1,r2]=g.pair;const ch=cards.filter(c=>c.rank===r1).slice(0,2).concat(cards.filter(c=>c.rank===r2).slice(0,2));return {name:'Two Pair',cards:ch,base:sum(ch)};}return null;}
+           function pair(){const g=byRankGroups();if(g.pair.length){const r=g.pair[0];const ch=cards.filter(c=>c.rank===r).slice(0,2);return {name:'Pair',cards:ch,base:sum(ch)};}return null;}
+           function high(){const c=cards.slice().sort((a,b)=>RVAL[b.rank]-RVAL[a.rank])[0];return {name:'High Card',cards:[c],base:sum([c])};}
+           return straightFlush()||fourKind()||fullHouse()||flush()||straight()||three()||twoPair()||pair()||high();
+         }
+         
+         function playSelected(){const me=state.players[state.turn];const sel=idsToCards(state.selected,me.hand);if(sel.length===0)return; if(sel.length>5){log('Select at most 5 cards to play.','bad');return;}const best=evaluateBestFromSelected(sel);const mult=state.multipliers[best.name]||1;const contributing=new Set(best.cards.map(c=>c.id));const base=best.base;const score=base*mult;me.hand=me.hand.filter(c=>!state.selected.has(c.id));me.score+=score;me.handsPlayed++;const throwaways=sel.filter(c=>!contributing.has(c.id));log(`${me.name} played ${best.name} for ${base} × ${mult} = ${score}. Discarded ${throwaways.length} extra.`,'good');try{document.getElementById('lastScore').textContent=`${best.name}: ${base} × ${mult} = ${score}`}catch(e){};state.selected.clear();checkEndThenAdvance();}
+         
+         // ===== End conditions & High Scores =====
+         function winnerText(){return `Total: ${state.players[0].score} pts.`}
+         function checkEndThenAdvance(){if(state.players[0].handsPlayed>=15){state.finished=true;saveScoresOnFinish();render();return;}nextTurn();}
+         
+         function loadScores(key){try{return JSON.parse(localStorage.getItem(key))||[]}catch(e){return[]}}
+         function persistScores(key,arr){localStorage.setItem(key,JSON.stringify(arr));}
+         function pushScore(key,entry){const list=loadScores(key);list.push(entry);list.sort((a,b)=>b.score-a.score);persistScores(key,list.slice(0,10));}
+         function saveScoresOnFinish(){pushScore(HS_SOLO,{score:state.players[0].score,label:new Date().toLocaleDateString()});renderHighScores();}
+         
+         // ===== Wiring =====
+         function bind(){const rollBtn=document.getElementById('roll'); if(rollBtn) rollBtn.onclick=rollDie; const playBtn=document.getElementById('play'); if(playBtn) playBtn.onclick=playSelected; const newG=document.getElementById('newGame'); if(newG) newG.onclick=()=>{state=setupGame();render();}; const reshuffle=document.getElementById('reshuffle'); if(reshuffle) reshuffle.onclick=()=>{state=setupGame();render();}; const clearBtn=document.getElementById('clearScores'); if(clearBtn) clearBtn.onclick=()=>{if(confirm('Clear all Solo high scores?')){persistScores(HS_SOLO,[]);renderHighScores();}} }
+         
+         bind(); state=setupGame(); render();
+         // Initialize dice pose
+         setTimeout(()=>{const d=document.getElementById('dice'); if(d) d.style.transform=ROT_FOR_NUM[1];},0);
+      </script>
+   </body>
 </html>
