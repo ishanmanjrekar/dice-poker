@@ -90,40 +90,56 @@
     <header>
       <div>
         <h1>Card Dice Poker</h1>
-        <div class="sub">Solo & 2‑Player • Follows your rules • Single‑file (GitHub Pages ready)</div>
+        <div class="sub">Solo • Follows your rules • Single‑file</div>
       </div>
       <div class="controls row">
-        <select id="mode">
-          <option value="solo">Solo (15 hands, hand cap 7)</option>
-          <option value="vs">2‑Player (10 hands each, hand cap 5)</option>
-        </select>
         <button class="primary" id="newGame">New Game</button>
       </div>
     </header>
 
     <div class="grid">
-      <!-- Left: Settings -->
+      <!-- Left: Settings (collapsed by default) -->
       <section class="panel">
-        <h2>Settings</h2>
-        <div class="info">Edit multipliers before you play a hand.</div>
-        <div id="multTable"></div>
-        <details>
-          <summary>Advanced</summary>
-          <div class="row" style="margin-top:8px">
-            <label class="pill">Seed</label>
-            <input id="seed" type="text" placeholder="optional" />
-            <button id="reshuffle">Reshuffle</button>
+        <details id="settings">
+          <summary style="font-size:14px;color:#cbd5e1;cursor:pointer">Settings</summary>
+          <div style="margin-top:10px">
+            <div class="info">Edit multipliers before you play a hand.</div>
+            <div id="multTable" style="margin-top:8px"></div>
+            <details style="margin-top:8px">
+              <summary>Advanced</summary>
+              <div class="row" style="margin-top:8px">
+                <label class="pill">Seed</label>
+                <input id="seed" type="text" placeholder="optional" />
+                <button id="reshuffle">Reshuffle</button>
+              </div>
+              <div class="info" style="margin-top:6px">Seeded shuffles help test and share setups.</div>
+            </details>
           </div>
-          <div class="info" style="margin-top:6px">Seeded shuffles help test and share setups.</div>
         </details>
-        <h3>Rules snapshot</h3>
-        <ul class="info">
-          <li>6 piles. Each starts 7 face‑down + 1 face‑up.</li>
-          <li>Roll up to 3× per turn. Empty pile = lost roll.</li>
-          <li>Solo: start 4, cap 7, exactly 15 hands.</li>
-          <li>2‑Player: start 2 each, cap 5, 3 discards per player for the whole game, opponent gets a last turn after first to 10 hands.</li>
-          <li>Play up to 5 selected cards. Only the best Poker combo among them scores; all selected cards are discarded.</li>
-        </ul>
+        <h3 style="margin-top:10px">Rules snapshot</h3>
+        <div class="info">
+          <strong>RULES:</strong>
+          <ol style="margin:8px 0 0 18px">
+            <li>There are 6 piles of cards. Each pile: 7 face-down cards + 1 card face‑up on top.</li>
+            <li>You get 4 cards to start — this is your hand.</li>
+            <li>Roll the dice to select a card from the piles.</li>
+            <li>Each round you may roll the die up to 3 times. On a roll, take the top card from the pile matching the die face and add it to your hand. If the pile is empty the roll is wasted.</li>
+            <li>Your hand limit is 7 cards. If you reach 7, you cannot roll again until you play a hand.</li>
+            <li>After you finish rolling (or you can’t roll), you must play a hand: select up to 5 cards from your hand and click <em>Play Selected</em>.</li>
+            <li>Score the played hand using Poker ranks. Only the cards that form the actual poker combination count toward scoring; any extra selected cards are discarded as throwaways.</li>
+            <li>Play 15 hands total. Your final score is the sum of all hand scores.</li>
+          </ol>
+        </div>
+        <details style="margin-top:10px">
+          <summary>View full rules</summary>
+          <div class="info" style="margin-top:8px">
+            <p><strong>Setup:</strong> Use a standard 52‑card deck. Prepare six piles; each pile contains 8 cards — 7 face‑down and 1 face‑up on top. Arrange piles left to right and deal 4 cards to your hand.</p>
+            <p><strong>Rolling:</strong> Each round you may roll up to three times. On each roll, take the top card from the pile matching the die face, then reveal the next face‑down card in that pile (if any). A roll that hits an empty pile counts but yields nothing.</p>
+            <p><strong>Playing a hand:</strong> After rolling (or reaching your hand cap), select up to 5 cards and play them. Score the hand using poker rankings (pair, two pair, flush, full house, etc.). The score equals the sum of the point values of the cards that form the played poker combination, multiplied by a hand multiplier (editable in Settings).</p>
+            <p><strong>Card values:</strong> Number cards score their face value; J/Q/K = 10; A = 11.</p>
+            <p><strong>Game end:</strong> Play exactly 15 hands. Add the scores for each played hand — that total is your final score.</p>
+          </div>
+        </details>
       </section>
 
       <!-- Middle: Board -->
@@ -145,17 +161,14 @@
           </div>
           <div class="row">
             <span class="pill" id="rollsLeft">Rolls left: 3</span>
-            <span class="pill" id="turnInfo">—</span>
+            <span class="pill" id="turnInfo">Solo Round</span>
           </div>
         </div>
         <h3 style="margin-top:10px">Current Hand</h3>
         <div class="hand" id="hand"></div>
         <div class="controls row" style="margin-top:8px">
           <button id="play">Play Selected</button>
-          <button id="pass" class="ghost">Pass Turn</button>
-          <button id="discard" class="ghost">Discard Selected</button>
           <span class="pill" id="handCap">Hand: 0/7</span>
-          <span class="pill" id="discardsLeft" title="2‑Player only">Discards: –</span>
         </div>
         <div class="score" id="lastScore" style="margin-top:8px"></div>
       </section>
@@ -166,15 +179,11 @@
         <div id="scoreboard"></div>
         <h3>Log</h3>
         <div class="log" id="log"></div>
-        <h3 style="margin-top:10px">High Scores</h3>
+        <h3 style="margin-top:10px">High Scores (Solo)</h3>
         <div id="highscores">
-          <div class="row"><span class="pill">Solo</span></div>
           <div id="soloList" class="info" style="margin:6px 0 10px"></div>
-          <div class="row"><span class="pill">Versus</span></div>
-          <div id="vsList" class="info" style="margin:6px 0 6px"></div>
           <button id="clearScores" class="ghost">Clear High Scores</button>
         </div>
-        <div class="footer">Publish: save as <code class="kbd">index.html</code> → push to GitHub → Settings → Pages → Deploy from branch.</div>
       </section>
     </div>
   </div>
@@ -195,9 +204,8 @@ const ROT_FOR_NUM={
   6:"rotateX(0deg) rotateY(180deg)",
 };
 
-// High score storage keys
+// High score storage key (solo only)
 const HS_SOLO='cdp:scores:solo';
-const HS_VS='cdp:scores:vs';
 
 // ===== Helpers =====
 function rng(seed){let x=seed||(Math.random()*1e9>>>0);return()=>{x^=x<<13;x^=x>>>17;x^=x<<5;return((x>>>0)%1_000_000)/1_000_000;};}
@@ -207,7 +215,7 @@ function newDeck(){let id=0;return SUITS.flatMap(s=>RANKS.map(r=>({id:id++,rank:
 // ===== State & Setup =====
 let state;
 function dealPiles(deck){const piles=Array.from({length:6},()=>({cards:[],faceDown:0,top:null}));for(let p=0;p<6;p++){const stack=deck.splice(0,8);piles[p].cards=stack;piles[p].faceDown=7;piles[p].top=stack[7]||null;}return piles;}
-function setupGame(mode){const seedStr=document.getElementById('seed')?.value?.trim()||"";const seed=seedStr?[...seedStr].reduce((a,c)=>a+c.charCodeAt(0),0):null;const deck=shuffle(newDeck(),seed);const piles=dealPiles(deck);const players=mode==='solo'?[{name:'Solo',hand:deck.splice(0,4),score:0,handsPlayed:0,discards:0,discardsLeft:null}]:[{name:'P1',hand:deck.splice(0,2),score:0,handsPlayed:0,discards:0,discardsLeft:3},{name:'P2',hand:deck.splice(0,2),score:0,handsPlayed:0,discards:0,discardsLeft:3}];return{mode,piles,players,turn:0,rollsLeft:3,die:null,selected:new Set(),log:[],multipliers:{...mulDefaults},finished:false,firstToTen:null,isAnimating:false};}
+function setupGame(){const mode='solo';const seedStr=document.getElementById('seed')?.value?.trim()||"";const seed=seedStr?[...seedStr].reduce((a,c)=>a+c.charCodeAt(0),0):null;const deck=shuffle(newDeck(),seed);const piles=dealPiles(deck);const players=[{name:'Solo',hand:deck.splice(0,4),score:0,handsPlayed:0}] ;return{mode,piles,players,turn:0,rollsLeft:3,die:null,selected:new Set(),log:[],multipliers:{...mulDefaults},finished:false,isAnimating:false};}
 
 // ===== Rendering =====
 function el(html){const d=document.createElement('div');d.innerHTML=html.trim();return d.firstChild;}
@@ -217,20 +225,60 @@ function suitCls(s){return s==='♠'?'s-spade':s==='♣'?'s-club':s==='♥'?'s-h
 function cardHtml(c,selectable=true){const sel=state.selected.has(c.id)?' sel':'';return `<div class="card ${suitCls(c.suit)}${sel}" data-id="${c.id}" ${selectable?'':'style="opacity:.8"'}><div class="r">${c.rank}</div><div class="s">${c.suit}</div></div>`}
 function renderPiles(){const root=document.getElementById('piles');root.innerHTML='';state.piles.forEach((p,idx)=>{const top=p.top?cardHtml(p.top,false):`<div class="card placeholder"></div>`;const pile=el(`<div class="pile" data-idx="${idx}"><div class="label">Pile ${idx+1}</div><div class="top">${top}</div><div class="count">Face‑down: ${p.faceDown} · Total left: ${p.cards.length}</div></div>`);root.appendChild(pile);});}
 function renderHand(){const root=document.getElementById('hand');root.innerHTML='';const me=state.players[state.turn];me.hand.forEach(c=>root.appendChild(el(cardHtml(c))));root.querySelectorAll('.card').forEach(div=>div.addEventListener('click',()=>{const id=parseInt(div.dataset.id);if(state.selected.has(id))state.selected.delete(id);else state.selected.add(id);renderHand();renderHUD();}));}
-function renderHUD(){document.getElementById('rollsLeft').textContent=`Rolls left: ${state.rollsLeft}`;document.getElementById('dieFace').textContent=`Die: ${state.die??'–'}`;const me=state.players[state.turn];const cap=state.mode==='solo'?7:5;document.getElementById('handCap').textContent=`Hand: ${me.hand.length}/${cap}`;document.getElementById('turnInfo').textContent=state.mode==='solo'?'Solo Round':`Turn: ${me.name}`;document.getElementById('discardsLeft').textContent=state.mode==='vs'?`Discards: ${me.discardsLeft}`:'Discards: —';const rollBtn=document.getElementById('roll');rollBtn.disabled=state.finished||state.rollsLeft<=0||me.hand.length>=cap||state.isAnimating;document.getElementById('play').disabled=state.finished||state.selected.size===0||state.isAnimating;document.getElementById('pass').disabled=state.finished||state.mode==='solo'||state.isAnimating;document.getElementById('discard').disabled=state.finished||state.selected.size===0||state.mode!=='vs'||me.discardsLeft<=0||state.isAnimating;}
-function renderScore(){const root=document.getElementById('scoreboard');const lines=state.players.map(p=>`<p><span class="pill">${p.name}</span> — <strong>${p.score}</strong> pts · Hands: ${p.handsPlayed}${state.mode==='vs'?` · Discards used: ${p.discards}`:''}</p>`).join('');root.innerHTML=lines+(state.finished?`<p class="good"><strong>Game Over.</strong> ${winnerText()}</p>`:'');}
-function renderLog(){document.getElementById('log').innerHTML=state.log.slice(-120).map(x=>`<p class="${x.kind||''}">${x.t}</p>`).join('');}
-function renderHighScores(){const solo=loadScores(HS_SOLO);const vs=loadScores(HS_VS);const fmt=list=>list.length?'<ol>'+list.map((e,i)=>`<li>#${i+1} — <strong>${e.score}</strong> pts <span class="muted">${e.label?('· '+e.label):''}</span></li>`).join('')+'</ol>':'<div class="muted">No scores yet.</div>';document.getElementById('soloList').innerHTML=fmt(solo);document.getElementById('vsList').innerHTML=fmt(vs);} 
+function renderHUD(){
+  try{document.getElementById('rollsLeft').textContent=`Rolls left: ${state.rollsLeft}`;}catch(e){}
+  try{document.getElementById('dieFace').textContent=`Die: ${state.die??'–'}`}catch(e){}
+  const me = state.players[state.turn];
+  const cap = 7;
+  try{document.getElementById('handCap').textContent=`Hand: ${me.hand.length}/${cap}`}catch(e){}
+  try{document.getElementById('turnInfo').textContent='Solo Round'}catch(e){}
+
+  const rollBtn = document.getElementById('roll');
+  if(rollBtn){
+    rollBtn.disabled = state.finished || state.rollsLeft<=0 || me.hand.length>=cap || state.isAnimating;
+    if(rollBtn.disabled){
+      // visually grey out when disabled
+      rollBtn.style.opacity = '0.5';
+      rollBtn.style.background = '#263238';
+      rollBtn.style.borderColor = '#374151';
+      rollBtn.style.color = '#9ca3af';
+      // add a single log entry when rolls are depleted
+      if(state.rollsLeft<=0){
+        const last = state.log[state.log.length-1];
+        if(!last || last.t !== 'No rolls remaining. Play a hand first'){
+          // exact message requested
+          log('No rolls remaining. Play a hand first','warn');
+        }
+      }
+    } else {
+      // restore styles when enabled
+      rollBtn.style.opacity = '';
+      rollBtn.style.background = '';
+      rollBtn.style.borderColor = '';
+      rollBtn.style.color = '';
+    }
+  }
+
+  const playBtn=document.getElementById('play'); if(playBtn) playBtn.disabled=state.finished||state.selected.size===0||state.isAnimating;
+}
+function renderScore(){const root=document.getElementById('scoreboard');const p=state.players[0];root.innerHTML=`<p><span class="pill">${p.name}</span> — <strong>${p.score}</strong> pts · Hands: ${p.handsPlayed}</p>`+(state.finished?`<p class="good"><strong>Game Over.</strong> ${winnerText()}</p>`:'');}
+function renderLog(){
+  const root = document.getElementById('log');
+  // show newest entries at the top
+  const entries = state.log.slice(-120).reverse();
+  root.innerHTML = entries.map(x=>`<p class="${x.kind||''}">${x.t}</p>`).join('');
+}
+function renderHighScores(){const solo=loadScores(HS_SOLO);const fmt=list=>list.length?'<ol>'+list.map((e,i)=>`<li>#${i+1} — <strong>${e.score}</strong> pts <span class="muted">${e.label?('· '+e.label):''}</span></li>`).join('')+'</ol>':'<div class="muted">No scores yet.</div>';const elSolo=document.getElementById('soloList'); if(elSolo) elSolo.innerHTML=fmt(solo);} 
 function log(t,kind=""){state.log.push({t,kind});renderLog();}
 
 // ===== Dice visual =====
-function setDieVisual(n){const d=document.getElementById('dice');d.classList.remove('rolling');void d.offsetWidth;d.classList.add('rolling');setTimeout(()=>{d.style.transform=ROT_FOR_NUM[n];},50);} // quick spin then settle
+function setDieVisual(n){const d=document.getElementById('dice');if(!d) return; d.classList.remove('rolling');void d.offsetWidth;d.classList.add('rolling');setTimeout(()=>{d.style.transform=ROT_FOR_NUM[n];},50);} // quick spin then settle
 
 // ===== Draw & animation =====
 function getElementRect(el){const r=el.getBoundingClientRect();return {x:r.left,y:r.top,w:r.width,h:r.height};}
 function flyCardFromTo(card, fromEl, toEl){return new Promise(resolve=>{const fr=getElementRect(fromEl);const tr=getElementRect(toEl);const ghost=document.createElement('div');ghost.className='card '+suitCls(card.suit)+' fly';ghost.innerHTML=`<div class="r">${card.rank}</div><div class="s">${card.suit}</div>`;ghost.style.left=fr.x+'px';ghost.style.top=fr.y+'px';ghost.style.width=fr.w+'px';ghost.style.height=fr.h+'px';document.body.appendChild(ghost);const dx=(tr.x+tr.w/2)-(fr.x+fr.w/2);const dy=(tr.y+tr.h/2)-(fr.y+fr.h/2);requestAnimationFrame(()=>{ghost.style.transform=`translate(${dx}px, ${dy}px)`;ghost.style.opacity='0.9';});setTimeout(()=>{ghost.remove();resolve();},620);});}
 
-async function drawFromPileAnimated(idx){const p=state.piles[idx];if(!p||p.cards.length===0){log(`Rolled ${idx+1} → pile empty.`,`warn`);return false;}const me=state.players[state.turn];const cap=state.mode==='solo'?7:5;if(me.hand.length>=cap){log(`Hand is at cap; cannot draw.`,`bad`);return false;}
+async function drawFromPileAnimated(idx){const p=state.piles[idx];if(!p||p.cards.length===0){log(`Rolled ${idx+1} → pile empty.`,`warn`);return false;}const me=state.players[state.turn];const cap=7;if(me.hand.length>=cap){log(`Hand is at cap; cannot draw.`,`bad`);return false;}
   const card=p.cards[p.cards.length-1]; // peek top
   const pileEl=document.querySelector(`.pile[data-idx="${idx}"] .top .card`);
   if(!pileEl){ // fallback: no visual, just delay
@@ -254,8 +302,8 @@ async function drawFromPileAnimated(idx){const p=state.piles[idx];if(!p||p.cards
 }
 
 // ===== Game flow =====
-async function rollDie(){const me=state.players[state.turn];const cap=state.mode==='solo'?7:5;if(state.rollsLeft<=0||me.hand.length>=cap||state.finished||state.isAnimating)return;state.isAnimating=true;renderHUD();const face=1+Math.floor(Math.random()*6);state.die=face;state.rollsLeft--;setDieVisual(face);document.getElementById('dieFace').textContent=`Die: ${face}`;await drawFromPileAnimated(face-1);state.isAnimating=false;renderHUD();}
-function nextTurn(){state.selected.clear();state.rollsLeft=3;state.die=null;renderHUD();if(state.mode==='vs')state.turn=(state.turn+1)%2;render();}
+async function rollDie(){const me=state.players[state.turn];const cap=7;if(state.rollsLeft<=0||me.hand.length>=cap||state.finished||state.isAnimating) return;state.isAnimating=true;renderHUD();const face=1+Math.floor(Math.random()*6);state.die=face;state.rollsLeft--;setDieVisual(face);try{document.getElementById('dieFace').textContent=`Die: ${face}`}catch(e){};await drawFromPileAnimated(face-1);state.isAnimating=false;renderHUD();}
+function nextTurn(){state.selected.clear();state.rollsLeft=3;state.die=null;renderHUD();render();}
 function idsToCards(ids,hand){const m=new Map(hand.map(c=>[c.id,c]));return[...ids].map(id=>m.get(id)).filter(Boolean);}
 
 // ===== Hand evaluation =====
@@ -278,28 +326,23 @@ function evaluateBestFromSelected(cards){if(cards.length===0)return null;const b
   return straightFlush()||fourKind()||fullHouse()||flush()||straight()||three()||twoPair()||pair()||high();
 }
 
-function playSelected(){const me=state.players[state.turn];const sel=idsToCards(state.selected,me.hand);if(sel.length===0)return; if(sel.length>5){log('Select at most 5 cards to play.','bad');return;}const best=evaluateBestFromSelected(sel);const mult=state.multipliers[best.name]||1;const contributing=new Set(best.cards.map(c=>c.id));const base=best.base;const score=base*mult;me.hand=me.hand.filter(c=>!state.selected.has(c.id));me.score+=score;me.handsPlayed++;const throwaways=sel.filter(c=>!contributing.has(c.id));log(`${me.name} played ${best.name} for ${base} × ${mult} = ${score}. Discarded ${throwaways.length} extra.`,'good');document.getElementById('lastScore').textContent=`${best.name}: ${base} × ${mult} = ${score}`;state.selected.clear();checkEndThenAdvance();}
-function passTurn(){if(state.mode!=='vs')return;log(`${state.players[state.turn].name} passed.`,'muted');nextTurn();}
-function discardSelected(){if(state.mode!=='vs')return;const me=state.players[state.turn];if(me.discardsLeft<=0)return;const sel=idsToCards(state.selected,me.hand);if(sel.length===0)return;me.hand=me.hand.filter(c=>!state.selected.has(c.id));me.discards++;me.discardsLeft--;state.selected.clear();log(`${me.name} discarded ${sel.length} card(s). Discards left: ${me.discardsLeft}.`,'warn');render();}
+function playSelected(){const me=state.players[state.turn];const sel=idsToCards(state.selected,me.hand);if(sel.length===0)return; if(sel.length>5){log('Select at most 5 cards to play.','bad');return;}const best=evaluateBestFromSelected(sel);const mult=state.multipliers[best.name]||1;const contributing=new Set(best.cards.map(c=>c.id));const base=best.base;const score=base*mult;me.hand=me.hand.filter(c=>!state.selected.has(c.id));me.score+=score;me.handsPlayed++;const throwaways=sel.filter(c=>!contributing.has(c.id));log(`${me.name} played ${best.name} for ${base} × ${mult} = ${score}. Discarded ${throwaways.length} extra.`,'good');try{document.getElementById('lastScore').textContent=`${best.name}: ${base} × ${mult} = ${score}`}catch(e){};state.selected.clear();checkEndThenAdvance();}
 
 // ===== End conditions & High Scores =====
-function winnerText(){if(state.mode==='solo')return `Total: ${state.players[0].score} pts.`;const[a,b]=state.players;if(a.score>b.score)return `Winner: ${a.name}`;if(b.score>a.score)return `Winner: ${b.name}`;return 'Draw!';}
-function checkEndThenAdvance(){if(state.mode==='solo'){if(state.players[0].handsPlayed>=15){state.finished=true;saveScoresOnFinish();render();return;}nextTurn();}else{const me=state.players[state.turn];if(me.handsPlayed>=10&&!state.firstToTen){state.firstToTen=state.turn;log(`${me.name} reached 10 hands. Opponent gets one final turn.`,'warn');}
-  if(state.firstToTen!==null && state.turn!==state.firstToTen){state.finished=true;saveScoresOnFinish();render();return;}nextTurn();}}
+function winnerText(){return `Total: ${state.players[0].score} pts.`}
+function checkEndThenAdvance(){if(state.players[0].handsPlayed>=15){state.finished=true;saveScoresOnFinish();render();return;}nextTurn();}
 
 function loadScores(key){try{return JSON.parse(localStorage.getItem(key))||[]}catch(e){return[]}}
 function persistScores(key,arr){localStorage.setItem(key,JSON.stringify(arr));}
 function pushScore(key,entry){const list=loadScores(key);list.push(entry);list.sort((a,b)=>b.score-a.score);persistScores(key,list.slice(0,10));}
-function saveScoresOnFinish(){if(state.mode==='solo'){pushScore(HS_SOLO,{score:state.players[0].score,label:new Date().toLocaleDateString()});}
- else {const [a,b]=state.players;pushScore(HS_VS,{score:a.score,label:`P1 · ${new Date().toLocaleDateString()}`});pushScore(HS_VS,{score:b.score,label:`P2 · ${new Date().toLocaleDateString()}`});}
- renderHighScores();}
+function saveScoresOnFinish(){pushScore(HS_SOLO,{score:state.players[0].score,label:new Date().toLocaleDateString()});renderHighScores();}
 
 // ===== Wiring =====
-function bind(){document.getElementById('roll').onclick=rollDie;document.getElementById('play').onclick=playSelected;document.getElementById('pass').onclick=passTurn;document.getElementById('discard').onclick=discardSelected;document.getElementById('newGame').onclick=()=>{state=setupGame(document.getElementById('mode').value);render();};document.getElementById('mode').onchange=()=>{state=setupGame(document.getElementById('mode').value);render();};document.getElementById('reshuffle').onclick=()=>{state=setupGame(document.getElementById('mode').value);render();};document.getElementById('clearScores').onclick=()=>{if(confirm('Clear all high scores for Solo & Versus?')){persistScores(HS_SOLO,[]);persistScores(HS_VS,[]);renderHighScores();}}}
+function bind(){const rollBtn=document.getElementById('roll'); if(rollBtn) rollBtn.onclick=rollDie; const playBtn=document.getElementById('play'); if(playBtn) playBtn.onclick=playSelected; const newG=document.getElementById('newGame'); if(newG) newG.onclick=()=>{state=setupGame();render();}; const reshuffle=document.getElementById('reshuffle'); if(reshuffle) reshuffle.onclick=()=>{state=setupGame();render();}; const clearBtn=document.getElementById('clearScores'); if(clearBtn) clearBtn.onclick=()=>{if(confirm('Clear all Solo high scores?')){persistScores(HS_SOLO,[]);renderHighScores();}} }
 
-bind(); state=setupGame(document.getElementById('mode').value); render();
+bind(); state=setupGame(); render();
 // Initialize dice pose
-setTimeout(()=>{document.getElementById('dice').style.transform=ROT_FOR_NUM[1];},0);
+setTimeout(()=>{const d=document.getElementById('dice'); if(d) d.style.transform=ROT_FOR_NUM[1];},0);
 </script>
 </body>
 </html>
