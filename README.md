@@ -3,7 +3,7 @@
 A card-and-dice hybrid game you can play solo or with a friend.  
 Test your luck and strategy by rolling dice, drawing cards, and building the best Poker hands for points.
 
-##### Read [this][https://gamedesignbites.substack.com/p/free-poker-style-card-game] for more context and details.
+##### Read [this](https://gamedesignbites.substack.com/p/free-poker-style-card-game) for more context and details.
 - This is a playable version of the solo variant of this game.
 - It has been made using GPT5.
 - You can read the setup and rules of the physical game below.
