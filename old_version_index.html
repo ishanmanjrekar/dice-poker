@@ -5,218 +5,90 @@
       <meta name="viewport" content="width=device-width, initial-scale=1" />
       <title>Dice Poker</title>
       <style>
-         /* ===== Theme palette (pastel / cozy) ===== */
          :root{
-           --bg-sky:#dff4ff;
-           --bg:#f7f3ee;
-           --panel:#fff8f0;
-           --edge:#e6dccb;
-           --text:#4a3f2f;
-           --muted:#9b8c75;
-           --accent:#7fd1b8;
-           --ok:#91b36f;
-           --warn:#e2a55f;
-           --bad:#d97b7b;
-           --spade:#5c89d3;
-           --club:#70b36f;
-           --heart:#e8706c;
-           --diamond:#f4aa62;
-           --paper-cream:#fffaf0;
-           --paper-shadow: rgba(60,40,20,0.06);
+         --bg:#0b0f14; --panel:#0f172a; --edge:#1e293b; --text:#e5e7eb; --muted:#94a3b8;
+         --accent:#60a5fa; --ok:#34d399; --warn:#f59e0b; --bad:#ef4444;
+         --spade:#38bdf8; --club:#22c55e; --heart:#ef4444; --diamond:#f97316;
          }
-
          *{box-sizing:border-box}
          html,body{height:100%}
-         body{
-           margin:0;
-           font-family: "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-           background: linear-gradient(180deg,var(--bg-sky) 0%, var(--bg) 60%);
-           color:var(--text);
-           position:relative;
-           -webkit-font-smoothing:antialiased;
-           -moz-osx-font-smoothing:grayscale;
-         }
-
-         /* ===== Background illustration (static) ===== */
-         .background{
-           position:fixed;
-           inset:0;
-           z-index:-1;
-           pointer-events:none;
-           overflow:hidden;
-         }
-         .background svg{width:100%;height:100%;display:block}
-
-         .wrap{max-width:1200px;margin:0 auto;padding:20px 18px 36px}
-         header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:14px}
-         header h1{font-size:22px;margin:0;letter-spacing:.3px;color:var(--text)}
+         body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;background:linear-gradient(180deg,#0b0f14,#0b0f14 60%,#0f172a);color:var(--text)}
+         .wrap{max-width:1200px;margin:0 auto;padding:16px 16px 32px}
+         header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:12px}
+         header h1{font-size:20px;margin:0;letter-spacing:.3px}
          header .sub{font-size:12px;color:var(--muted)}
-
          .grid{display:grid;grid-template-columns:280px 1fr 360px;gap:16px}
-         .panel{
-           background:var(--panel);
-           border:1.5px solid var(--edge);
-           border-radius:16px;
-           padding:14px;
-           box-shadow:0 8px 20px rgba(40,30,20,0.06);
-         }
-
-         h2{font-size:15px;margin:0 0 10px 0;color:var(--text);letter-spacing:.2px}
-         h3{font-size:13px;margin:10px 0 6px 0;color:var(--text)}
+         .panel{background:var(--panel);border:1px solid var(--edge);border-radius:16px;padding:12px;box-shadow:0 8px 30px rgba(0,0,0,.25)}
+         h2{font-size:14px;margin:0 0 10px 0;color:#cbd5e1;letter-spacing:.2px}
+         h3{font-size:13px;margin:10px 0 6px 0;color:#cbd5e1}
          .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-
-         /* Controls */
-         .controls button,.controls select,.controls input[type="number"],.controls input[type="text"]{
-           background:var(--paper-cream);
-           border:1px solid var(--edge);
-           color:var(--text);
-           padding:8px 10px;
-           border-radius:10px;
-           cursor:pointer;
-           font-size:13px;
-           box-shadow:0 2px 6px var(--paper-shadow);
-         }
-         .controls button:hover{transform:translateY(-1px)}
-         .controls .primary{
-           background:linear-gradient(180deg,var(--accent),#5db79f);
-           border-color:#5da78f;
-           color:#ffffff;
-           font-weight:700;
-         }
-         .controls .ghost{background:transparent}
-
-         .pill{display:inline-block;padding:4px 10px;border-radius:999px;border:1px solid var(--edge);background:var(--paper-cream);font-size:12px;color:var(--muted);font-weight:600}
-
+         .controls button,.controls select,.controls input[type="number"],.controls input[type="text"]{background:#0b1220;border:1px solid var(--edge);color:var(--text);padding:8px 10px;border-radius:10px;cursor:pointer;font-size:13px}
+         .controls button:hover{border-color:#2f3f55}
+         .controls .primary{background:linear-gradient(180deg,#2563eb,#1d4ed8);border-color:#1e40af}
+         .controls .ghost{background:#0b1220}
+         .pill{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid var(--edge);background:#0b1220;font-size:11px;color:#cbd5e1}
          .piles{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
-         .pile{
-           background:linear-gradient(180deg,#fffdfa,#fff6ec);
-           border:1.5px solid var(--edge);
-           border-radius:14px;padding:10px;min-height:118px;
-           position:relative;overflow:hidden;
-           box-shadow:0 4px 10px rgba(40,30,20,0.04);
-         }
-         .pile .label{position:absolute;top:8px;left:10px;font-size:11px;color:var(--muted)}
-         .pile .top{margin-top:22px;display:flex;align-items:center;justify-content:center;gap:6px;min-height:72px}
-         .pile .count{font-size:12px;color:var(--muted);text-align:center;margin-top:6px}
-
-         /* ===== Card: paper style ===== */
-         .card{
-           display:inline-grid;
-           place-items:center;
-           width:56px;
-           height:80px;
-           border-radius:14px;
-           border:1px solid rgba(0,0,0,0.06);
-           background:linear-gradient(180deg,var(--paper-cream),#fff4e6);
-           font-weight:800;
-           position:relative;
-           user-select:none;
-           box-shadow:0 8px 18px rgba(30,20,10,0.06);
-           transform-origin:center;
-           transition:transform 0.14s ease, box-shadow 0.14s ease, outline 0.14s ease;
-           padding:6px;
-         }
-
-         /* subtle paper texture using before */
-         .card::before{
-           content:"";
-           position:absolute;
-           inset:0;
-           border-radius:12px;
-           background-image:
-             radial-gradient(circle at 10% 10%, rgba(255,255,255,0.5) 0px, rgba(255,255,255,0) 10px),
-             linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02));
-           pointer-events:none;
-           mix-blend-mode:soft-light;
-         }
-
-         .card:hover{transform:translateY(-6px);box-shadow:0 14px 30px rgba(30,20,10,0.09)}
-         .card.sel{outline:3px solid rgba(127,209,184,0.6);outline-offset:2px}
-
-         .card .r{font-size:18px;line-height:1;color:var(--text);position:absolute;top:8px;left:8px}
-         .card .s{font-size:18px;line-height:1;color:var(--text);position:absolute;bottom:10px;right:10px;transform:translateY(-2px)}
-
-         /* Suit color tints (kept on small elements too) */
-         .s-spade{color:#222f45}
+         .pile{background:#0b1220;border:1px solid var(--edge);border-radius:14px;padding:8px;min-height:118px;position:relative;overflow:hidden}
+         .pile .label{position:absolute;top:6px;left:8px;font-size:11px;color:var(--muted)}
+         .pile .top{margin-top:18px;display:flex;align-items:center;justify-content:center;gap:6px;min-height:72px}
+         .pile .count{font-size:11px;color:var(--muted);text-align:center;margin-top:6px}
+         .card{display:inline-grid;place-items:center;width:48px;height:68px;border-radius:12px;border:1px solid #334155;background:linear-gradient(160deg,#0c1421,#0b1320);font-weight:700;position:relative;user-select:none}
+         .card .r{font-size:14px}
+         .card .s{font-size:13px}
+         .card.sel{outline:2px solid var(--accent)}
+         .card::after{content:"";position:absolute;inset:0;border-radius:12px;opacity:.3;pointer-events:none}
+         .s-spade{color:#dbeafe}
          .s-spade .s{color:var(--spade)}
-         .s-club{color:#223925}
+         .s-spade::after{background:radial-gradient(80px 40px at 50% -10%, rgba(56,189,248,.35), transparent)}
+         .s-club{color:#dcfce7}
          .s-club .s{color:var(--club)}
-         .s-heart{color:#3b1f24}
+         .s-club::after{background:radial-gradient(80px 40px at 50% -10%, rgba(34,197,94,.35), transparent)}
+         .s-heart{color:#fee2e2}
          .s-heart .s{color:var(--heart)}
-         .s-diamond{color:#4a2d13}
+         .s-heart::after{background:radial-gradient(80px 40px at 50% -10%, rgba(239,68,68,.35), transparent)}
+         .s-diamond{color:#ffedd5}
          .s-diamond .s{color:var(--diamond)}
-
-         .placeholder{opacity:.45;border-style:dashed;background:linear-gradient(180deg,#fffaf0,#fff6ea)}
-         .hand{display:flex;flex-wrap:wrap;gap:10px;min-height:88px}
-         .info{font-size:13px;color:var(--muted)}
+         .s-diamond::after{background:radial-gradient(80px 40px at 50% -10%, rgba(249,115,22,.35), transparent)}
+         .placeholder{opacity:.35;border-style:dashed}
+         .hand{display:flex;flex-wrap:wrap;gap:8px;min-height:76px}
+         .info{font-size:12px;color:var(--muted)}
          .score{font-size:13px}
-         .log{max-height:260px;overflow:auto;font-size:13px;border-radius:10px;background:linear-gradient(180deg,#fffdfa,#fff6ec);padding:10px;border:1.5px solid var(--edge)}
-         .log p{margin:6px 0}
+         .log{max-height:260px;overflow:auto;font-size:12px;border-radius:10px;background:#0b1220;padding:8px;border:1px solid var(--edge)}
+         .log p{margin:4px 0}
          .muted{color:var(--muted)}
          .good{color:var(--ok)}
          .warn{color:var(--warn)}
          .bad{color:var(--bad)}
-
          .footer{margin-top:16px;font-size:12px;color:var(--muted)}
          details{border-top:1px solid var(--edge);margin-top:10px;padding-top:10px}
-         table{width:100%;border-collapse:collapse;font-size:13px}
-         th,td{border-bottom:1px solid var(--edge);padding:8px;text-align:left}
-         code.kbd{padding:2px 8px;border-radius:6px;background:#fffdf6;border:1px solid var(--edge)}
-         a{color:var(--accent)}
-
+         table{width:100%;border-collapse:collapse;font-size:12px}
+         th,td{border-bottom:1px solid var(--edge);padding:6px;text-align:left}
+         code.kbd{padding:1px 6px;border-radius:6px;background:#0b1220;border:1px solid var(--edge)}
+         a{color:#93c5fd}
          @media(max-width:1024px){.grid{grid-template-columns:1fr}}
-
-         /* Dice -- keep original transforms but restyle faces */
+         /* Dice */
          .dice-area{display:flex;align-items:center;gap:10px}
-         .dice-wrap{width:62px;height:62px;perspective:700px}
-         .dice{width:62px;height:62px;position:relative;transform-style:preserve-3d;transition:transform 700ms cubic-bezier(.2,.8,.2,1)}
+         .dice-wrap{width:54px;height:54px;perspective:700px}
+         .dice{width:54px;height:54px;position:relative;transform-style:preserve-3d;transition:transform 700ms cubic-bezier(.2,.8,.2,1)}
          .dice.rolling{animation:roll-spin 650ms ease-in-out}
          @keyframes roll-spin{0%{transform:rotateX(0) rotateY(0)}50%{transform:rotateX(200deg) rotateY(160deg)}100%{transform:rotateX(360deg) rotateY(360deg)}}
-         .dice .side{position:absolute;width:62px;height:62px;border-radius:14px;background:linear-gradient(180deg,#fffaf0,#fff5e8);color:var(--text);border:2px solid var(--edge);display:grid;place-items:center;font-weight:800;font-size:20px;box-shadow:inset 0 2px 0 rgba(255,255,255,0.6)}
-         .side.front{transform:translateZ(31px)}
-         .side.back{transform:rotateY(180deg) translateZ(31px)}
-         .side.right{transform:rotateY(90deg) translateZ(31px)}
-         .side.left{transform:rotateY(-90deg) translateZ(31px)}
-         .side.top{transform:rotateX(90deg) translateZ(31px)}
-         .side.bottom{transform:rotateX(-90deg) translateZ(31px)}
-
-         /* flying card animation */
+         .dice .side{position:absolute;width:54px;height:54px;border-radius:10px;background:#e5e7eb;color:#0b1220;border:2px solid #d1d5db;display:grid;place-items:center;font-weight:800;font-size:18px;box-shadow:inset 0 0 0 2px rgba(0,0,0,.05)}
+         .side.front{transform:translateZ(27px)}
+         .side.back{transform:rotateY(180deg) translateZ(27px)}
+         .side.right{transform:rotateY(90deg) translateZ(27px)}
+         .side.left{transform:rotateY(-90deg) translateZ(27px)}
+         .side.top{transform:rotateX(90deg) translateZ(27px)}
+         .side.bottom{transform:rotateX(-90deg) translateZ(27px)}
+         /* Flying card animation */
          .fly{position:fixed;z-index:50;transition:transform 600ms cubic-bezier(.22,1,.36,1), opacity 600ms ease;will-change:transform,opacity}
       </style>
    </head>
    <body>
-      <!-- Static illustrated background (hills + clouds) -->
-      <div class="background" aria-hidden="true">
-        <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" role="img">
-          <defs>
-            <linearGradient id="sky" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0" stop-color="#dff4ff"/>
-              <stop offset="1" stop-color="#f7f3ee"/>
-            </linearGradient>
-            <filter id="soft" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="30" result="b"/>
-              <feBlend in="SourceGraphic" in2="b" mode="normal"/>
-            </filter>
-          </defs>
-          <rect width="1600" height="900" fill="url(#sky)"/>
-          <!-- distant soft clouds -->
-          <g opacity="0.75" filter="url(#soft)" transform="translate(60,30)">
-            <ellipse cx="360" cy="80" rx="140" ry="40" fill="#ffffff" opacity="0.6"/>
-            <ellipse cx="600" cy="70" rx="180" ry="50" fill="#ffffff" opacity="0.55"/>
-            <ellipse cx="1100" cy="90" rx="150" ry="45" fill="#ffffff" opacity="0.5"/>
-          </g>
-          <!-- hills -->
-          <path d="M0 720 Q300 620 800 700 T1600 700 L1600 900 L0 900 Z" fill="#bfe3b5"/>
-          <path d="M0 760 Q300 680 800 760 T1600 760 L1600 900 L0 900 Z" fill="#a8d497"/>
-          <path d="M0 800 Q300 730 800 800 T1600 800 L1600 900 L0 900 Z" fill="#8fbd8f"/>
-        </svg>
-      </div>
-
       <div class="wrap">
          <header>
             <div>
                <h1>Dice Poker</h1>
-               <div class="sub">Solo version - <a href = "https://gamedesignbites.substack.com"> Game Design Bites</a></div>
+               <div class="sub">Solo version - <a href = "https://gamedesignbites.substack.com"> Game Design Bites</a> x GPT5</div>
             </div>
             <div class="controls row">
                <button class="primary" id="newGame">New Game</button>
@@ -226,7 +98,7 @@
             <!-- Left: Settings (collapsed by default) -->
             <section class="panel">
                <details id="settings">
-                  <summary style="font-size:14px;color:var(--text);cursor:pointer">Settings</summary>
+                  <summary style="font-size:14px;color:#cbd5e1;cursor:pointer">Settings</summary>
                   <div style="margin-top:10px">
                      <div class="info">Edit multipliers before you play a hand.</div>
                      <div id="multTable" style="margin-top:8px"></div>
@@ -244,14 +116,14 @@
                <h2 style="margin-top:10px">RULES:</h2>
                 <div class="info">
                   <ul style="margin:8px 0 0 18px">
-                    <li>🃏 <span style="color:#e8706c">6 piles of cards</span>: 7 face-down + 1 face-up each.</li>
-                    <li>✋ Start with <span style="color:#7fd1b8">4 cards</span> in your hand.</li>
+                    <li>🃏 <span style="color:#ff6b6b">6 piles of cards</span>: 7 face-down + 1 face-up each.</li>
+                    <li>✋ Start with <span style="color:#4ecdc4">4 cards</span> in your hand.</li>
                     <li>🎲 Roll the dice to take the top card from the matching pile.</li>
-                    <li>🔄 Up to <span style="color:#e2a55f">3 rolls</span> per round. Empty pile = roll wasted.</li>
-                    <li>🖐️ Hand limit: <span style="color:#f4aa62">7 cards</span>. Play a hand before rolling again if full.</li>
-                    <li>✅ Select up to <span style="color:#7fd1b8">5 cards</span> and click <em>Play Selected</em> to play a hand.</li>
-                    <li>🏆 Score hands using <span style="color:#e8706c">Poker ranks</span>. Only valid combos count; extras are discarded.</li>
-                    <li>🎯 Play <span style="color:#e2a55f">15 hands</span>. Final score = sum of all hand scores.</li>
+                    <li>🔄 Up to <span style="color:#ffd93d">3 rolls</span> per round. Empty pile = roll wasted.</li>
+                    <li>🖐️ Hand limit: <span style="color:#f08a5d">7 cards</span>. Play a hand before rolling again if full.</li>
+                    <li>✅ Select up to <span style="color:#4ecdc4">5 cards</span> and click <em>Play Selected</em> to play a hand.</li>
+                    <li>🏆 Score hands using <span style="color:#ff6b6b">Poker ranks</span>. Only valid combos count; extras are discarded.</li>
+                    <li>🎯 Play <span style="color:#ffd93d">15 hands</span>. Final score = sum of all hand scores.</li>
                   </ul>
                 </div>
             </section>
@@ -301,7 +173,6 @@
             </section>
          </div>
       </div>
-
       <script>
          // ===== Constants =====
          const SUITS=["♠","♥","♦","♣"]; const RANKS=["2","3","4","5","6","7","8","9","10","J","Q","K","A"]; const RVAL=Object.fromEntries(RANKS.map((r,i)=>[r,i+2]));
@@ -325,7 +196,7 @@
          function rng(seed){let x=seed||(Math.random()*1e9>>>0);return()=>{x^=x<<13;x^=x>>>17;x^=x<<5;return((x>>>0)%1_000_000)/1_000_000;};}
          function shuffle(a,seed){const r=seed?rng(seed):Math.random;for(let i=a.length-1;i>0;i--){const j=Math.floor((seed?r():r())*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
          function newDeck(){let id=0;return SUITS.flatMap(s=>RANKS.map(r=>({id:id++,rank:r,suit:s})));}
-
+         
          // ===== State & Setup =====
          let state;
          function dealPiles(deck){const piles=Array.from({length:6},()=>({cards:[],faceDown:0,top:null}));for(let p=0;p<6;p++){const stack=deck.splice(0,8);piles[p].cards=stack;piles[p].faceDown=7;piles[p].top=stack[7]||null;}return piles;}
@@ -334,10 +205,10 @@
          // ===== Rendering =====
          function el(html){const d=document.createElement('div');d.innerHTML=html.trim();return d.firstChild;}
          function render(){renderSettings();renderPiles();renderHand();renderHUD();renderScore();renderLog();renderHighScores();}
-         function renderSettings(){const box=document.getElementById('multTable');box.innerHTML='';const tbl=document.createElement('table');tbl.appendChild(el('<tr><th>Hand</th><th>Multiplier</th></tr>'));for(const [k,v] of Object.entries(state.multipliers)){const tr=document.createElement('tr');tr.innerHTML=`<td>${k}</td><td><input type="number" min="1" step="1" value="${v}" data-key="${k}" style="width:80px;background:var(--paper-cream);border:1px solid var(--edge);color:var(--text);padding:6px;border-radius:8px"></td>`;tbl.appendChild(tr);}box.appendChild(tbl);box.querySelectorAll('input').forEach(inp=>inp.addEventListener('input',e=>{const k=e.target.dataset.key;state.multipliers[k]=parseInt(e.target.value||'1');}));}
+         function renderSettings(){const box=document.getElementById('multTable');box.innerHTML='';const tbl=document.createElement('table');tbl.appendChild(el('<tr><th>Hand</th><th>Multiplier</th></tr>'));for(const [k,v] of Object.entries(state.multipliers)){const tr=document.createElement('tr');tr.innerHTML=`<td>${k}</td><td><input type="number" min="1" step="1" value="${v}" data-key="${k}" style="width:80px;background:#0b1220;border:1px solid #1e293b;color:var(--text);padding:6px;border-radius:8px"></td>`;tbl.appendChild(tr);}box.appendChild(tbl);box.querySelectorAll('input').forEach(inp=>inp.addEventListener('input',e=>{const k=e.target.dataset.key;state.multipliers[k]=parseInt(e.target.value||'1');}));}
          function suitCls(s){return s==='♠'?'s-spade':s==='♣'?'s-club':s==='♥'?'s-heart':'s-diamond';}
          function cardHtml(c,selectable=true){const sel=state.selected.has(c.id)?' sel':'';return `<div class="card ${suitCls(c.suit)}${sel}" data-id="${c.id}" ${selectable?'':'style="opacity:.8"'}><div class="r">${c.rank}</div><div class="s">${c.suit}</div></div>`}
-         function renderPiles(){const root=document.getElementById('piles');root.innerHTML='';state.piles.forEach((p,idx)=>{const top=p.top?cardHtml(p.top,false):`<div class="card placeholder"></div>`;const pile=el(`<div class="pile" data-idx="${idx}"><div class="label">Pile ${idx+1}</div><div class="top">${top}</div><div class="count">Face-down: ${p.faceDown} · Total left: ${p.cards.length}</div></div>`);root.appendChild(pile);});}
+         function renderPiles(){const root=document.getElementById('piles');root.innerHTML='';state.piles.forEach((p,idx)=>{const top=p.top?cardHtml(p.top,false):`<div class="card placeholder"></div>`;const pile=el(`<div class="pile" data-idx="${idx}"><div class="label">Pile ${idx+1}</div><div class="top">${top}</div><div class="count">Face‑down: ${p.faceDown} · Total left: ${p.cards.length}</div></div>`);root.appendChild(pile);});}
          function renderHand(){const root=document.getElementById('hand');root.innerHTML='';const me=state.players[state.turn];me.hand.forEach(c=>root.appendChild(el(cardHtml(c))));root.querySelectorAll('.card').forEach(div=>div.addEventListener('click',()=>{const id=parseInt(div.dataset.id);if(state.selected.has(id))state.selected.delete(id);else state.selected.add(id);renderHand();renderHUD();}));}
          function renderHUD(){
            try{document.getElementById('rollsLeft').textContent=`Rolls left: ${state.rollsLeft}`;}catch(e){}
@@ -353,9 +224,9 @@
              if(rollBtn.disabled){
                // visually grey out when disabled
                rollBtn.style.opacity = '0.5';
-               rollBtn.style.background = 'linear-gradient(180deg,#efe8df,#e6ded1)';
-               rollBtn.style.borderColor = '#e2d8c6';
-               rollBtn.style.color = '#a49b8c';
+               rollBtn.style.background = '#263238';
+               rollBtn.style.borderColor = '#374151';
+               rollBtn.style.color = '#9ca3af';
                // add a single log entry when rolls are depleted
                if(state.rollsLeft<=0){
                  const last = state.log[state.log.length-1];
